@@ -96,6 +96,35 @@
         }
         .submit-btn:hover { opacity: 0.9; }
 
+        /* 아이디 / 비밀번호 찾기 링크 버튼 */
+        .find-links {
+            text-align: center; margin-top: 15px; font-size: 13px; color: #888888;
+        }
+        .find-links span {
+            cursor: pointer; transition: color 0.2s ease; margin: 0 5px;
+        }
+        .find-links span:hover { color: #7BA4DB; text-decoration: underline; }
+
+        /* 모달 스타일 */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); z-index: 9998;
+        }
+        .auth-modal {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #FFFFFF; width: 90%; max-width: 400px; padding: 30px;
+            border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); z-index: 9999;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h3 { font-size: 18px; color: #333333; }
+        .modal-close-btn { background: none; border: none; font-size: 20px; color: #AAAAAA; cursor: pointer; }
+        .modal-close-btn:hover { color: #333333; }
+        
+        .result-box {
+            display: none; background-color: #F0F7FF; border: 1px solid #7BA4DB; border-radius: 4px;
+            padding: 15px; text-align: center; margin-top: 15px; font-size: 14px; color: #333333;
+        }
+
         @media (max-width: 768px) {
             main { padding: 40px 20px 80px 20px; }
             .auth-card { padding: 30px 20px; box-shadow: none; border: none; }
@@ -127,6 +156,11 @@
                     </div>
                 </div>
                 <button type="submit" class="submit-btn">로그인</button>
+                
+                <div class="find-links">
+                    <span onclick="openModal('modalFindId')">아이디 찾기</span> | 
+                    <span onclick="openModal('modalResetPw')">비밀번호 재설정</span>
+                </div>
             </form>
 
             <form class="auth-form" id="signupForm" onsubmit="handleSignup(event)">
@@ -138,7 +172,7 @@
                     </div>
                 </div>
 
-                <div class="input-group">
+                <div class="input-group" id="studentInfoField">
                     <label>학번 정보</label>
                     <div class="student-info-row">
                         <div class="input-wrapper">
@@ -225,7 +259,7 @@
                     <label for="signupPhone">전화번호</label>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-phone"></i>
-                        <input type="tel" id="signupPhone" placeholder="010-0000-0000" maxlength="13" required>
+                        <input type="tel" id="signupPhone" class="auto-hyphen" placeholder="010-0000-0000" maxlength="13" required>
                     </div>
                 </div>
 
@@ -240,6 +274,84 @@
             </form>
         </div>
     </main>
+
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal('modalFindId'); closeModal('modalResetPw');"></div>
+
+    <div class="auth-modal" id="modalFindId">
+        <div class="modal-header">
+            <h3>아이디 찾기</h3>
+            <button class="modal-close-btn" onclick="closeModal('modalFindId')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="formFindId" class="auth-form active" onsubmit="handleFindId(event)">
+            <div class="input-group">
+                <label for="findIdName">가입한 이름</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-font"></i>
+                    <input type="text" id="findIdName" placeholder="실명을 입력하세요" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="findIdPhone">가입한 전화번호</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-phone"></i>
+                    <input type="tel" id="findIdPhone" class="auto-hyphen" placeholder="010-0000-0000" maxlength="13" required>
+                </div>
+            </div>
+            <button type="submit" class="submit-btn">아이디 찾기</button>
+        </form>
+        <div class="result-box" id="findIdResult"></div>
+    </div>
+
+    <div class="auth-modal" id="modalResetPw">
+        <div class="modal-header">
+            <h3>비밀번호 재설정</h3>
+            <button class="modal-close-btn" onclick="closeModal('modalResetPw')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <form id="formVerifyInfo" class="auth-form active" onsubmit="handleVerifyForPwReset(event)" id="verifyPwSection">
+            <div class="input-group">
+                <label for="resetPwId">아이디</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-user"></i>
+                    <input type="text" id="resetPwId" placeholder="아이디를 입력하세요" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="resetPwName">가입한 이름</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-font"></i>
+                    <input type="text" id="resetPwName" placeholder="실명을 입력하세요" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="resetPwPhone">가입한 전화번호</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-phone"></i>
+                    <input type="tel" id="resetPwPhone" class="auto-hyphen" placeholder="010-0000-0000" maxlength="13" required>
+                </div>
+            </div>
+            <button type="submit" class="submit-btn">정보 확인</button>
+        </form>
+
+        <form id="formUpdatePw" class="auth-form" onsubmit="handleUpdatePw(event)" id="updatePwSection" style="display: none;">
+            <p style="font-size: 13px; color: #7BA4DB; margin-bottom: 5px; font-weight: 500;">본인 확인이 완료되었습니다. 새 비밀번호를 입력해 주세요.</p>
+            <div class="input-group">
+                <label for="newPw">새 비밀번호</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="newPw" placeholder="새 비밀번호 입력" required>
+                </div>
+            </div>
+            <div class="input-group">
+                <label for="newPwConfirm">새 비밀번호 확인</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="newPwConfirm" placeholder="새 비밀번호 재입력" required>
+                </div>
+            </div>
+            <button type="submit" class="submit-btn">비밀번호 변경하기</button>
+        </form>
+    </div>
 
 </body>
 </html>
