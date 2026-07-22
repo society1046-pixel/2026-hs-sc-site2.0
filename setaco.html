@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>형석고 학생회 - 내 정보 수정</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #7BA4DB;
+            --bg-color: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --border-color: #EEEEEE;
+            --text-main: #333333;
+            --text-sub: #64748B;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans KR', sans-serif; letter-spacing: -0.5px; }
+        body { background-color: var(--bg-color); color: var(--text-main); }
+        
+        main { max-width: 500px; margin: 60px auto; padding: 0 20px; }
+        
+        .profile-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--text-main);
+        }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-sub);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #DDD;
+            border-radius: 6px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--primary-color); }
+        
+        /* 수정 불가능한 입력창 스타일 */
+        .form-control:disabled, .form-control[readonly] {
+            background-color: #F1F5F9;
+            color: #94A3B8;
+            cursor: not-allowed;
+            border-color: #E2E8F0;
+        }
+
+        .help-text {
+            color: #94A3B8;
+            font-size: 12px;
+            margin-top: 6px;
+            display: block;
+        }
+
+        .divider {
+            border: 0;
+            border-top: 1px dashed #CBD5E1;
+            margin: 30px 0;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: #FFF;
+            border: none;
+            padding: 14px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+        .btn-submit:hover { background-color: #6A93CA; }
+
+        .btn-back {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-sub);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .btn-back:hover { text-decoration: underline; color: var(--text-main); }
+    </style>
+</head>
+<body>
+
+<script src="head.js"></script>
+
+<main>
+    <div class="profile-card">
+        <h2 class="page-title"><i class="fa-solid fa-user-pen" style="color: var(--primary-color);"></i> 내 정보 수정</h2>
+        
+        <form id="profileForm">
+            <div class="form-group">
+                <label>이름</label>
+                <input type="text" id="userName" class="form-control" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>학번</label>
+                <input type="text" id="userStudentNum" class="form-control" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>직책 / 부서</label>
+                <input type="text" id="userRoleDept" class="form-control" readonly>
+                <span class="help-text"><i class="fa-solid fa-circle-info"></i> 이름, 학번, 직책 변경이 필요한 경우 관리자에게 문의하세요.</span>
+            </div>
+
+            <hr class="divider">
+
+            <div class="form-group">
+                <label>아이디</label>
+                <input type="text" id="userId" class="form-control" placeholder="아이디를 입력하세요">
+            </div>
+
+            <div class="form-group">
+                <label>전화번호</label>
+                <input type="tel" id="userPhone" class="form-control" placeholder="010-0000-0000">
+            </div>
+
+            <div class="form-group">
+                <label>새 비밀번호 (변경 시에만 입력)</label>
+                <input type="password" id="userPw" class="form-control" placeholder="변경할 비밀번호를 입력하세요">
+            </div>
+
+            <div class="form-group">
+                <label>새 비밀번호 확인</label>
+                <input type="password" id="userPwConfirm" class="form-control" placeholder="비밀번호를 다시 한 번 입력하세요">
+            </div>
+
+            <button type="button" class="btn-submit" onclick="updateProfile()">정보 수정하기</button>
+            <a href="index.html" class="btn-back">메인으로 돌아가기</a>
+        </form>
+    </div>
+</main>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCWPYuQeihfDgp5tVlrObBVRs2UZDlTkks",
+        authDomain: "hyeongsok-student-counci-e6115.firebaseapp.com",
+        projectId: "hyeongsok-student-counci-e6115",
+        storageBucket: "hyeongsok-student-counci-e6115.firebasestorage.app",
+        messagingSenderId: "847440892138",
+        appId: "1:847440892138:web:152021aaaf5f330b2d0793",
+        measurementId: "G-F40YFFMGWE"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const roles = {
+        'student': '일반학생',
+        'class_president': '반장',
+        'class_vice_president': '부반장',
+        'student_council': '학생회(임원)',
+        'president': '전교회장',
+        'vice_president': '전교부회장',
+        'dept_head': '부서장(부장)',
+        'dept_vice': '차장',
+        'teacher': '선생님',
+        'admin': '관리자'
+    };
+
+    const depts = {
+        'none': '',
+        '': '',
+        'executives': '회장단',
+        'content_comm': '콘텐츠소통부',
+        'culture_comm': '문화소통부',
+        'health_act': '건강활동부',
+        'academic_art': '학술문예부',
+        'safety_life': '생활안전부'
+    };
+
+    // 1. 페이지 로드 시 로그인 확인 및 데이터 불러오기
+    window.onload = async () => {
+        const session = JSON.parse(localStorage.getItem('userSession'));
+        
+        if (!session) {
+            alert("로그인이 필요한 페이지입니다.");
+            location.href = "login.html";
+            return;
+        }
+
+        try {
+            const userRef = doc(db, "users", session.id);
+            const userSnap = await getDoc(userRef);
+
+            if (userSnap.exists()) {
+                const u = userSnap.data();
+                
+                document.getElementById('userId').value = u.id;
+                document.getElementById('userName').value = u.name;
+                document.getElementById('userStudentNum').value = u.studentNumber;
+                document.getElementById('userPhone').value = u.phone || '';
+
+                let roleText = roles[u.role] || '일반학생';
+                let deptText = depts[u.department] || '';
+                document.getElementById('userRoleDept').value = deptText ? `${deptText} ${roleText}` : roleText;
+            } else {
+                alert("사용자 정보를 찾을 수 없습니다.");
+                localStorage.removeItem('userSession');
+                location.href = "login.html";
+            }
+        } catch (error) {
+            console.error("데이터 로드 오류:", error);
+            alert("정보를 불러오는 중 오류가 발생했습니다.");
+        }
+    };
+
+    // 2. 폼 제출 시 정보 업데이트
+    window.updateProfile = async function() {
+        const session = JSON.parse(localStorage.getItem('userSession'));
+        if (!session) {
+            alert("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
+            location.href = "login.html";
+            return;
+        }
+
+        // '정보 수정하기' 버튼 클릭 시 비밀번호 입력 팝업창 띄우기
+        const inputPw = prompt("정보를 수정하려면 비밀번호를 입력하세요.");
+
+        // 취소 버튼을 누른 경우
+        if (inputPw === null) {
+            return;
+        }
+
+        // 아무것도 입력하지 않고 확인을 누른 경우
+        if (inputPw.trim() === "") {
+            alert("비밀번호를 입력하세요.");
+            return;
+        }
+
+        const currentId = session.id;
+        const newId = document.getElementById('userId').value.trim();
+        const phone = document.getElementById('userPhone').value.trim();
+        const newPw = document.getElementById('userPw').value;
+        const pwConfirm = document.getElementById('userPwConfirm').value;
+
+        try {
+            // DB에서 현재 유저 데이터를 가져와 비밀번호 검증
+            const oldUserRef = doc(db, "users", currentId);
+            const userSnap = await getDoc(oldUserRef);
+            
+            if (!userSnap.exists()) {
+                alert("사용자 정보를 찾을 수 없습니다.");
+                return;
+            }
+            
+            const userData = userSnap.data();
+            
+            // 입력한 비밀번호와 DB 비밀번호 비교
+            if (userData.password !== inputPw) {
+                alert("비밀번호가 일치하지 않습니다.");
+                return;
+            }
+
+            // 비밀번호가 맞다면 정보 수정 진행
+            let finalData = { ...userData, phone: phone };
+
+            // 새 비밀번호 입력한 경우 검증 및 추가
+            if (newPw !== "") {
+                if (newPw !== pwConfirm) {
+                    alert("새 비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+                    return;
+                }
+                if (newPw.length < 4) {
+                    alert("새 비밀번호는 4자리 이상이어야 합니다.");
+                    return;
+                }
+                finalData.password = newPw;
+            }
+
+            // 아이디를 변경한 경우
+            if (newId !== currentId) {
+                if (!newId) {
+                    alert("아이디를 빈칸으로 둘 수 없습니다.");
+                    return;
+                }
+                
+                // 새 아이디 중복 체크
+                const newUserRef = doc(db, "users", newId);
+                const newSnap = await getDoc(newUserRef);
+                if (newSnap.exists()) {
+                    alert("이미 사용 중인 아이디입니다. 다른 아이디를 입력해주세요.");
+                    return;
+                }
+                
+                finalData.id = newId; // 문서 내부의 id 필드 갱신
+                
+                // 새 아이디 문서 생성 후, 기존 아이디 문서 삭제
+                await setDoc(newUserRef, finalData);
+                await deleteDoc(oldUserRef);
+                
+                // 로컬 스토리지 로그인 세션의 아이디도 변경
+                session.id = newId;
+                localStorage.setItem('userSession', JSON.stringify(session));
+            } else {
+                // 아이디 변경이 없는 경우 기존 문서 업데이트
+                await updateDoc(oldUserRef, finalData);
+            }
+            
+            alert("내 정보가 성공적으로 수정되었습니다.");
+            location.reload(); 
+            
+        } catch (error) {
+            console.error("업데이트 오류:", error);
+            alert("정보 수정 중 오류가 발생했습니다: " + error.message);
+        }
+    };
+</script>
+
+</body>
+</html>
