@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="head.js"></script>
-
     <script type="module" src="login.js"></script>
 
     <style>
@@ -308,7 +307,7 @@
             <button class="modal-close-btn" onclick="closeModal('modalResetPw')"><i class="fa-solid fa-xmark"></i></button>
         </div>
         
-        <form id="formVerifyInfo" class="auth-form active" onsubmit="handleVerifyForPwReset(event)" id="verifyPwSection">
+        <form id="verifyPwSection" class="auth-form active" onsubmit="handleVerifyForPwReset(event)">
             <div class="input-group">
                 <label for="resetPwId">아이디</label>
                 <div class="input-wrapper">
@@ -333,7 +332,7 @@
             <button type="submit" class="submit-btn">정보 확인</button>
         </form>
 
-        <form id="formUpdatePw" class="auth-form" onsubmit="handleUpdatePw(event)" id="updatePwSection" style="display: none;">
+        <form id="updatePwSection" class="auth-form" onsubmit="handleUpdatePw(event)" style="display: none;">
             <p style="font-size: 13px; color: #7BA4DB; margin-bottom: 5px; font-weight: 500;">본인 확인이 완료되었습니다. 새 비밀번호를 입력해 주세요.</p>
             <div class="input-group">
                 <label for="newPw">새 비밀번호</label>
