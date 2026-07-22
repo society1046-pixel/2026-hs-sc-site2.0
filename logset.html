@@ -131,9 +131,11 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // 상세 역할 정의
+    // 상세 역할 정의 (반장, 부반장 추가)
     const roles = {
         'student': '일반학생',
+        'class_president': '반장',
+        'class_vice_president': '부반장',
         'student_council': '학생회(임원)',
         'president': '전교회장',
         'vice_president': '전교부회장',
