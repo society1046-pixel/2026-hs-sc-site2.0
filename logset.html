@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>형석고 어드민 콘솔 - logset 고도화</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #7BA4DB;
+            --bg-color: #FFFFFF;
+            --accent-bg: #F8FAFC;
+            --border-color: #EEEEEE;
+            --text-main: #333333;
+            --text-sub: #64748B;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans KR', sans-serif; letter-spacing: -0.5px; }
+        body { background-color: var(--bg-color); color: var(--text-main); overflow-x: hidden; }
+        
+        header {
+            height: 80px; border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 40px; position: sticky; top: 0; background: #fff; z-index: 100;
+        }
+        .logo { font-size: 20px; font-weight: 700; color: var(--text-main); }
+        .logo i { color: var(--primary-color); margin-right: 8px; }
+
+        main { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .section-header { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .section-title { font-size: 24px; font-weight: 700; border-bottom: 2px solid #333; padding-bottom: 10px; }
+
+        /* 카드 스타일 */
+        .admin-card { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 30px; margin-bottom: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); }
+
+        /* 일괄 생성 영역 */
+        .bulk-area textarea { width: 100%; height: 120px; padding: 15px; border: 1px solid #DDD; border-radius: 6px; font-size: 13px; margin-bottom: 15px; resize: none; }
+        .btn-pill { display: inline-flex; align-items: center; gap: 8px; background-color: #EEF2F7; color: #334155; padding: 10px 24px; border-radius: 30px; font-size: 14px; font-weight: 500; border: none; cursor: pointer; transition: 0.2s; }
+        .btn-pill:hover { background-color: #E2E8F0; }
+        .btn-primary { background-color: var(--primary-color); color: #fff; }
+        .btn-primary:hover { opacity: 0.9; }
+
+        /* 테이블 스타일 */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th { text-align: left; padding: 15px; background: var(--accent-bg); color: var(--text-sub); font-weight: 600; border-bottom: 2px solid var(--border-color); }
+        td { padding: 15px; border-bottom: 1px solid var(--border-color); }
+        
+        input[type="text"], input[type="tel"], select { padding: 6px 10px; border: 1px solid #DDD; border-radius: 4px; font-size: 13px; width: 100%; }
+        .role-badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .badge-pending { background: #FFF3CD; color: #856404; }
+        .badge-approved { background: #D4EDDA; color: #155724; }
+
+        .action-group { display: flex; gap: 5px; }
+        .btn-action { padding: 5px 10px; font-size: 12px; border-radius: 4px; border: 1px solid #DDD; cursor: pointer; background: #fff; }
+        .btn-save { background: var(--primary-color); color: #fff; border: none; }
+        .btn-del { color: #E74C3C; }
+
+        @media (max-width: 768px) {
+            header { padding: 0 20px; }
+            .section-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo"><i class="fa-solid fa-shield-halved"></i> HSHS Admin Console</div>
+    <div style="display: flex; gap: 15px; align-items: center;">
+        <span id="adminInfo" style="font-size: 14px; font-weight: 500;">관리자님</span>
+        <button class="btn-pill" onclick="location.href='main.html'">메인으로</button>
+    </div>
+</header>
+
+<main>
+    <div class="section-header">
+        <h2 class="section-title">계정 일괄 생성</h2>
+    </div>
+    <div class="admin-card bulk-area">
+        <p style="font-size: 13px; color: #666; margin-bottom: 10px;">아이디, 비밀번호, 이름, 학번(5자리), 역할(student/council), 전화번호 순으로 줄바꿈하여 입력하세요.</p>
+        <textarea id="bulkData" placeholder="test01,1234,홍길동,10101,student,010-1234-5678&#10;test02,1234,이학생,20305,council,010-1111-2222"></textarea>
+        <button class="btn-pill btn-primary" onclick="bulkRegister()"><i class="fa-solid fa-users-plus"></i> 일괄 생성 실행</button>
+    </div>
+
+    <div class="section-header">
+        <h2 class="section-title">전체 회원 명단 및 수정</h2>
+        <button class="btn-pill" onclick="loadUsers()"><i class="fa-solid fa-rotate"></i> 새로고침</button>
+    </div>
+    <div class="admin-card" style="padding: 0; overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 120px;">아이디</th>
+                    <th style="width: 100px;">이름</th>
+                    <th style="width: 100px;">학번</th>
+                    <th style="width: 150px;">역할/직책</th>
+                    <th style="width: 150px;">부서</th>
+                    <th style="width: 130px;">전화번호</th>
+                    <th style="width: 80px;">상태</th>
+                    <th style="width: 120px;">관리</th>
+                </tr>
+            </thead>
+            <tbody id="userList">
+                </tbody>
+        </table>
+    </div>
+</main>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, setDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCWPYuQeihfDgp5tVlrObBVRs2UZDlTkks",
+        authDomain: "hyeongsok-student-counci-e6115.firebaseapp.com",
+        projectId: "hyeongsok-student-counci-e6115",
+        storageBucket: "hyeongsok-student-counci-e6115.firebasestorage.app",
+        messagingSenderId: "847440892138",
+        appId: "1:847440892138:web:152021aaaf5f330b2d0793",
+        measurementId: "G-F40YFFMGWE"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // 상세 역할 정의
+    const roles = {
+        'student': '일반학생',
+        'student_council': '학생회(임원)',
+        'president': '전교회장',
+        'vice_president': '전교부회장',
+        'dept_head': '부서장(부장)',
+        'dept_vice': '차장',
+        'teacher': '선생님',
+        'admin': '관리자'
+    };
+
+    const depts = {
+        'none': '없음',
+        'executives': '회장단',
+        'content_comm': '콘텐츠소통부',
+        'culture_comm': '문화소통부',
+        'health_act': '건강활동부',
+        'academic_art': '학술문예부',
+        'safety_life': '생활안전부'
+    };
+
+    // 1. 보안 체크 및 로드
+    window.onload = async () => {
+        const session = JSON.parse(localStorage.getItem('userSession'));
+        if(!session || session.role !== 'admin') {
+            alert("관리자 권한이 없습니다.");
+            location.href = "login.html";
+            return;
+        }
+        document.getElementById('adminInfo').innerText = `${session.name} 관리자`;
+        loadUsers();
+    };
+
+    // 2. 유저 목록 불러오기 (수정 가능 모드)
+    window.loadUsers = async function() {
+        const tbody = document.getElementById('userList');
+        tbody.innerHTML = "<tr><td colspan='8' style='text-align:center;'>로딩 중...</td></tr>";
+        
+        const snapshot = await getDocs(collection(db, "users"));
+        tbody.innerHTML = "";
+
+        snapshot.forEach(docSnap => {
+            const u = docSnap.data();
+            const tr = document.createElement('tr');
+            tr.id = `row-${u.id}`;
+            tr.innerHTML = `
+                <td><b>${u.id}</b></td>
+                <td><input type="text" value="${u.name || ''}" id="name-${u.id}"></td>
+                <td><input type="text" value="${u.studentNumber || ''}" id="num-${u.id}"></td>
+                <td>
+                    <select id="role-${u.id}">
+                        ${Object.entries(roles).map(([k, v]) => `<option value="${k}" ${u.role === k ? 'selected' : ''}>${v}</option>`).join('')}
+                    </select>
+                </td>
+                <td>
+                    <select id="dept-${u.id}">
+                        ${Object.entries(depts).map(([k, v]) => `<option value="${k}" ${u.department === k ? 'selected' : ''}>${v}</option>`).join('')}
+                    </select>
+                </td>
+                <td><input type="tel" value="${u.phone || ''}" id="phone-${u.id}"></td>
+                <td><span class="role-badge ${u.status === 'approved' ? 'badge-approved' : 'badge-pending'}">${u.status}</span></td>
+                <td>
+                    <div class="action-group">
+                        <button class="btn-action btn-save" onclick="updateUser('${u.id}')">저장</button>
+                        <button class="btn-action btn-del" onclick="deleteUser('${u.id}')">삭제</button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 3. 개별 정보 수정 실행
+    window.updateUser = async function(userId) {
+        const name = document.getElementById(`name-${userId}`).value;
+        const num = document.getElementById(`num-${userId}`).value;
+        const role = document.getElementById(`role-${userId}`).value;
+        const dept = document.getElementById(`dept-${userId}`).value;
+        const phone = document.getElementById(`phone-${userId}`).value;
+
+        try {
+            await updateDoc(doc(db, "users", userId), {
+                name: name,
+                studentNumber: num,
+                role: role,
+                department: dept,
+                phone: phone,
+                status: 'approved' // 수정 시 자동 승인 처리
+            });
+            alert("정보가 성공적으로 수정되었습니다.");
+            loadUsers();
+        } catch (e) { alert("수정 실패: " + e.message); }
+    };
+
+    // 4. 유저 삭제
+    window.deleteUser = async function(userId) {
+        if(!confirm("정말로 이 계정을 삭제하시겠습니까?")) return;
+        await deleteDoc(doc(db, "users", userId));
+        alert("삭제되었습니다.");
+        loadUsers();
+    };
+
+    // 5. 일괄 생성 (Bulk Register)
+    window.bulkRegister = async function() {
+        const data = document.getElementById('bulkData').value.trim();
+        if(!data) return alert("데이터를 입력하세요.");
+
+        const lines = data.split('\n');
+        let successCount = 0;
+
+        for(let line of lines) {
+            const [id, pw, name, num, role, phone] = line.split(',').map(s => s.trim());
+            if(!id || !pw) continue;
+
+            try {
+                await setDoc(doc(db, "users", id), {
+                    id: id, password: pw, name: name, studentNumber: num,
+                    role: role, phone: phone, status: 'approved', createdAt: new Date().toISOString()
+                });
+                successCount++;
+            } catch (e) { console.error(id + " 생성 실패"); }
+        }
+        alert(`${successCount}개의 계정이 일괄 생성되었습니다.`);
+        document.getElementById('bulkData').value = "";
+        loadUsers();
+    }
+</script>
+
+</body>
+</html>
