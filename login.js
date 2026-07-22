@@ -282,10 +282,14 @@ function closeModal(modalId) {
         document.getElementById('findIdResult').innerHTML = '';
         document.getElementById('findIdResult').style.display = 'none';
     } else if (modalId === 'modalResetPw') {
-        document.getElementById('formVerifyInfo').reset();
-        document.getElementById('formUpdatePw').reset();
-        document.getElementById('verifyPwSection').style.display = 'block';
-        document.getElementById('updatePwSection').style.display = 'none';
+        const verifyForm = document.getElementById('verifyPwSection');
+        const updateForm = document.getElementById('updatePwSection');
+        
+        if (verifyForm) verifyForm.reset();
+        if (updateForm) updateForm.reset();
+        
+        if (verifyForm) verifyForm.style.display = 'block';
+        if (updateForm) updateForm.style.display = 'none';
         window.tempResetId = null;
     }
 }
