@@ -334,12 +334,14 @@ document.addEventListener("DOMContentLoaded", () => {
 function checkLoginState() {
     const userSession = JSON.parse(localStorage.getItem('userSession'));
     
-    // 세분화된 직책 및 부서 매핑
+    // 세분화된 직책 및 부서 매핑 (누락된 직책 추가 및 한글 저장 대비)
     const roleMapping = {
         'student': '일반학생',
+        '학생': '일반학생',
         'student_council': '학생회 임원',
+        'class_president': '반장',
+        'vice_president': '부반장',
         'president': '전교회장',
-        'vice_president': '전교부회장',
         'dept_head': '부장', 
         'dept_vice': '차장',
         'teacher': '선생님',
@@ -348,6 +350,7 @@ function checkLoginState() {
 
     const deptMapping = {
         'none': '',
+        '': '',
         'executives': '회장단',
         'content_comm': '콘텐츠소통부',
         'culture_comm': '문화소통부',
@@ -360,7 +363,8 @@ function checkLoginState() {
     const mobileContainer = document.getElementById('authContainerMobile');
 
     if (userSession) {
-        let parsedRole = roleMapping[userSession.role] || '알 수 없음';
+        // 매핑되지 않은 값이 들어오더라도 기본적으로 '일반학생'이 출력되도록 수정
+        let parsedRole = roleMapping[userSession.role] || '일반학생';
         let parsedDept = deptMapping[userSession.department] || '';
         let finalRoleText = parsedDept ? `${parsedDept} ${parsedRole}` : parsedRole;
         
