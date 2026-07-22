@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
-    getFirestore, doc, setDoc, getDoc 
+    getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -32,14 +32,24 @@ function toggleRoleFields() {
     const role = roleSelect.value;
     const btn = document.getElementById('signupSubmitBtn');
     
+    const studentInfoField = document.getElementById('studentInfoField');
     const departmentField = document.getElementById('departmentField');
     const teacherOptionsField = document.getElementById('teacherOptionsField');
     const teacherCodeField = document.getElementById('teacherCodeField');
     
+    const signupGrade = document.getElementById('signupGrade');
+    const signupClass = document.getElementById('signupClass');
+    const signupNumber = document.getElementById('signupNumber');
     const signupDept = document.getElementById('signupDept');
     const teacherCode = document.getElementById('teacherCode');
     const teacherMethodElement = document.querySelector('input[name="teacherMethod"]:checked');
     const teacherMethod = teacherMethodElement ? teacherMethodElement.value : 'code';
+
+    // 학적(학년/반/번호) 기본 노출 및 필수 활성화
+    if(studentInfoField) studentInfoField.style.display = 'flex';
+    if(signupGrade) signupGrade.setAttribute('required', 'required');
+    if(signupClass) signupClass.setAttribute('required', 'required');
+    if(signupNumber) signupNumber.setAttribute('required', 'required');
 
     if(departmentField) departmentField.style.display = 'none';
     if(teacherOptionsField) teacherOptionsField.style.display = 'none';
@@ -55,6 +65,12 @@ function toggleRoleFields() {
         if(departmentField) departmentField.style.display = 'flex';
         if(signupDept) signupDept.setAttribute('required', 'required');
     } else if (role === 'teacher') {
+        // 선생님 선택 시 학적 정보 숨김 및 필수 해제
+        if(studentInfoField) studentInfoField.style.display = 'none';
+        if(signupGrade) signupGrade.removeAttribute('required');
+        if(signupClass) signupClass.removeAttribute('required');
+        if(signupNumber) signupNumber.removeAttribute('required');
+
         if(teacherOptionsField) teacherOptionsField.style.display = 'flex';
         if (teacherMethod === 'code') {
             if(teacherCodeField) teacherCodeField.style.display = 'flex';
@@ -74,11 +90,11 @@ function toggleRoleFields() {
     }
 }
 
-// 전화번호 자동 하이픈
+// 전화번호 자동 하이픈 (모든 전화번호 입력창 적용)
 document.addEventListener('DOMContentLoaded', () => {
-    const phoneInput = document.getElementById('signupPhone');
-    if (phoneInput) {
-        phoneInput.addEventListener('input', function (e) {
+    const phoneInputs = document.querySelectorAll('.auto-hyphen');
+    phoneInputs.forEach(input => {
+        input.addEventListener('input', function (e) {
             let val = e.target.value.replace(/[^0-9]/g, '');
             if (val.length > 3 && val.length <= 7) {
                 e.target.value = val.substr(0, 3) + '-' + val.substr(3);
@@ -88,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.target.value = val;
             }
         });
-    }
+    });
 });
 
 // 3. 로그인 핸들러
@@ -106,13 +122,11 @@ async function handleLogin(event) {
         return;
     }
 
-    // 버튼 상태 변경 ("로그인 중입니다...")
     if (submitBtn) {
         submitBtn.innerText = "로그인 중입니다...";
         submitBtn.disabled = true;
     }
 
-    // 실패 시 버튼 원상복구 함수
     const resetBtn = () => {
         if (submitBtn) {
             submitBtn.innerText = originalText;
@@ -176,10 +190,14 @@ async function handleSignup(event) {
     const dept = document.getElementById('signupDept') ? document.getElementById('signupDept').value : '';
     const phone = document.getElementById('signupPhone')?.value;
     
-    const grade = document.getElementById('signupGrade')?.value || '';
-    const stuClass = (document.getElementById('signupClass')?.value || '').padStart(2, '0');
-    const stuNum = (document.getElementById('signupNumber')?.value || '').padStart(2, '0');
-    const studentNumber = `${grade}${stuClass}${stuNum}`;
+    let studentNumber = "";
+    // 선생님이 아닌 경우에만 학번 조합
+    if (role !== 'teacher') {
+        const grade = document.getElementById('signupGrade')?.value || '';
+        const stuClass = (document.getElementById('signupClass')?.value || '').padStart(2, '0');
+        const stuNum = (document.getElementById('signupNumber')?.value || '').padStart(2, '0');
+        studentNumber = `${grade}${stuClass}${stuNum}`;
+    }
 
     const teacherMethodElement = document.querySelector('input[name="teacherMethod"]:checked');
     const teacherMethod = teacherMethodElement ? teacherMethodElement.value : 'code';
@@ -197,7 +215,6 @@ async function handleSignup(event) {
         accountStatus = "approved";
     }
 
-    // 버튼 상태 변경 ("처리 중입니다...")
     if (submitBtn) {
         submitBtn.innerText = "처리 중입니다...";
         submitBtn.disabled = true;
@@ -249,8 +266,118 @@ async function handleSignup(event) {
     }
 }
 
+// 5. 모달 열기/닫기 제어
+function openModal(modalId) {
+    document.getElementById('modalOverlay').style.display = 'block';
+    document.getElementById(modalId).style.display = 'block';
+}
+
+function closeModal(modalId) {
+    document.getElementById('modalOverlay').style.display = 'none';
+    document.getElementById(modalId).style.display = 'none';
+    
+    // 모달 내 폼 초기화 및 상태 복구
+    if (modalId === 'modalFindId') {
+        document.getElementById('formFindId').reset();
+        document.getElementById('findIdResult').innerHTML = '';
+        document.getElementById('findIdResult').style.display = 'none';
+    } else if (modalId === 'modalResetPw') {
+        document.getElementById('formVerifyInfo').reset();
+        document.getElementById('formUpdatePw').reset();
+        document.getElementById('verifyPwSection').style.display = 'block';
+        document.getElementById('updatePwSection').style.display = 'none';
+        window.tempResetId = null;
+    }
+}
+
+// 6. 아이디 찾기
+async function handleFindId(event) {
+    event.preventDefault();
+    const name = document.getElementById('findIdName').value.trim();
+    const phone = document.getElementById('findIdPhone').value.trim();
+    const resultBox = document.getElementById('findIdResult');
+    
+    try {
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("name", "==", name), where("phone", "==", phone));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            resultBox.style.display = 'block';
+            resultBox.innerHTML = '<span style="color:#E74C3C;">일치하는 회원 정보가 없습니다.</span>';
+        } else {
+            let foundIds = [];
+            querySnapshot.forEach((docSnap) => {
+                foundIds.push(docSnap.id);
+            });
+            resultBox.style.display = 'block';
+            resultBox.innerHTML = `회원님의 아이디는 <strong>${foundIds.join(', ')}</strong> 입니다.`;
+        }
+    } catch (error) {
+        console.error("아이디 찾기 오류:", error);
+        alert("아이디를 찾는 중 오류가 발생했습니다.");
+    }
+}
+
+// 7. 비밀번호 재설정 - 1단계: 정보 확인
+async function handleVerifyForPwReset(event) {
+    event.preventDefault();
+    const id = document.getElementById('resetPwId').value.trim();
+    const name = document.getElementById('resetPwName').value.trim();
+    const phone = document.getElementById('resetPwPhone').value.trim();
+
+    try {
+        const userDocRef = doc(db, "users", id);
+        const userSnap = await getDoc(userDocRef);
+
+        if (userSnap.exists()) {
+            const data = userSnap.data();
+            if (data.name === name && data.phone === phone) {
+                // 일치 시 업데이트 창으로 전환
+                window.tempResetId = id;
+                document.getElementById('verifyPwSection').style.display = 'none';
+                document.getElementById('updatePwSection').style.display = 'block';
+            } else {
+                alert("입력하신 이름이나 전화번호가 회원 정보와 일치하지 않습니다.");
+            }
+        } else {
+            alert("존재하지 않는 아이디입니다.");
+        }
+    } catch (error) {
+        console.error("정보 확인 오류:", error);
+        alert("정보를 확인하는 중 오류가 발생했습니다.");
+    }
+}
+
+// 8. 비밀번호 재설정 - 2단계: 새 비밀번호 변경
+async function handleUpdatePw(event) {
+    event.preventDefault();
+    const newPw = document.getElementById('newPw').value;
+    const newPwConfirm = document.getElementById('newPwConfirm').value;
+
+    if (newPw !== newPwConfirm) {
+        alert("입력하신 두 비밀번호가 일치하지 않습니다.");
+        return;
+    }
+
+    try {
+        const userDocRef = doc(db, "users", window.tempResetId);
+        await updateDoc(userDocRef, { password: newPw });
+        alert("비밀번호가 성공적으로 변경되었습니다! 새 비밀번호로 로그인해 주세요.");
+        closeModal('modalResetPw');
+    } catch (error) {
+        console.error("비밀번호 변경 오류:", error);
+        alert("비밀번호 변경 중 오류가 발생했습니다.");
+    }
+}
+
 // 전역(window) 객체 연결
 window.switchTab = switchTab;
 window.toggleRoleFields = toggleRoleFields;
 window.handleLogin = handleLogin;
 window.handleSignup = handleSignup;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.handleFindId = handleFindId;
+window.handleVerifyForPwReset = handleVerifyForPwReset;
+window.handleUpdatePw = handleUpdatePw;
