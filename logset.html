@@ -57,8 +57,12 @@
 
         .action-group { display: flex; gap: 5px; }
         .btn-action { padding: 5px 10px; font-size: 12px; border-radius: 4px; border: 1px solid #DDD; cursor: pointer; background: #fff; }
+        .btn-approve { background: #28a745; color: #fff; border: none; }
+        .btn-approve:hover { background: #218838; }
         .btn-save { background: var(--primary-color); color: #fff; border: none; }
+        .btn-save:hover { opacity: 0.9; }
         .btn-del { color: #E74C3C; }
+        .btn-del:hover { background: #FDECEA; }
 
         @media (max-width: 768px) {
             header { padding: 0 20px; }
@@ -87,7 +91,7 @@
     </div>
 
     <div class="section-header">
-        <h2 class="section-title">전체 회원 명단 및 수정</h2>
+        <h2 class="section-title">전체 회원 명단 및 관리</h2>
         <button class="btn-pill" onclick="loadUsers()"><i class="fa-solid fa-rotate"></i> 새로고침</button>
     </div>
     <div class="admin-card" style="padding: 0; overflow-x: auto;">
@@ -101,7 +105,7 @@
                     <th style="width: 150px;">부서</th>
                     <th style="width: 130px;">전화번호</th>
                     <th style="width: 80px;">상태</th>
-                    <th style="width: 120px;">관리</th>
+                    <th style="width: 150px;">관리</th>
                 </tr>
             </thead>
             <tbody id="userList">
@@ -161,7 +165,7 @@
         loadUsers();
     };
 
-    // 2. 유저 목록 불러오기 (수정 가능 모드)
+    // 2. 유저 목록 불러오기 (수정 가능 모드 및 승인 버튼 동적 생성)
     window.loadUsers = async function() {
         const tbody = document.getElementById('userList');
         tbody.innerHTML = "<tr><td colspan='8' style='text-align:center;'>로딩 중...</td></tr>";
@@ -191,6 +195,7 @@
                 <td><span class="role-badge ${u.status === 'approved' ? 'badge-approved' : 'badge-pending'}">${u.status}</span></td>
                 <td>
                     <div class="action-group">
+                        ${u.status === 'pending' ? `<button class="btn-action btn-approve" onclick="approveUser('${u.id}')">승인</button>` : ''}
                         <button class="btn-action btn-save" onclick="updateUser('${u.id}')">저장</button>
                         <button class="btn-action btn-del" onclick="deleteUser('${u.id}')">삭제</button>
                     </div>
@@ -200,7 +205,22 @@
         });
     }
 
-    // 3. 개별 정보 수정 실행
+    // 3. 계정 승인 처리
+    window.approveUser = async function(userId) {
+        if(!confirm("해당 계정의 가입을 승인하시겠습니까?")) return;
+        
+        try {
+            await updateDoc(doc(db, "users", userId), {
+                status: 'approved'
+            });
+            alert("계정이 승인되었습니다.");
+            loadUsers(); // 목록 새로고침
+        } catch (e) {
+            alert("승인 처리 실패: " + e.message);
+        }
+    };
+
+    // 4. 개별 정보 수정 실행
     window.updateUser = async function(userId) {
         const name = document.getElementById(`name-${userId}`).value;
         const num = document.getElementById(`num-${userId}`).value;
@@ -215,14 +235,14 @@
                 role: role,
                 department: dept,
                 phone: phone,
-                status: 'approved' // 수정 시 자동 승인 처리
+                status: 'approved' // 정보 수정 시 자동으로 승인 처리 유지
             });
             alert("정보가 성공적으로 수정되었습니다.");
             loadUsers();
         } catch (e) { alert("수정 실패: " + e.message); }
     };
 
-    // 4. 유저 삭제
+    // 5. 유저 삭제
     window.deleteUser = async function(userId) {
         if(!confirm("정말로 이 계정을 삭제하시겠습니까?")) return;
         await deleteDoc(doc(db, "users", userId));
@@ -230,7 +250,7 @@
         loadUsers();
     };
 
-    // 5. 일괄 생성 (Bulk Register)
+    // 6. 일괄 생성 (Bulk Register)
     window.bulkRegister = async function() {
         const data = document.getElementById('bulkData').value.trim();
         if(!data) return alert("데이터를 입력하세요.");
