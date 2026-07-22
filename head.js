@@ -217,7 +217,7 @@ const headerHTML = `
 
 <header>
     <div class="nav-container">
-        <a href="main.html" class="nav-left">
+        <a href="index.html" class="nav-left">
             <img src="https://drive.google.com/thumbnail?id=1-vFaLyktqvl_ywa0BpiBppSI6lEgsKDd&sz=w200" alt="로고">
             <span class="logo-title">형석고 학생회</span>
         </a>
