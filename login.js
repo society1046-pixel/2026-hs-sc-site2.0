@@ -153,7 +153,7 @@ async function handleLogin(event) {
 
         localStorage.setItem('userSession', JSON.stringify(sessionUser));
         alert(`${sessionUser.name}님 환영합니다!`);
-        window.location.href = "main.html";
+        window.location.href = "index.html";
 
     } catch (error) {
         console.error("로그인 오류:", error);
