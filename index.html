@@ -366,18 +366,8 @@
             
             <div class="minimal-list" id="notice">
                 <h2 class="section-title">최신 공지사항</h2>
-                <div class="minimal-item">
-                    <a href="#" class="item-title">2학기 학생회 대의원 정기총회 안건 발의 안내</a>
-                    <span class="item-date">2026.07.22</span>
-                </div>
-                <div class="minimal-item">
-                    <a href="#" class="item-title">교내 축제 기획단 학생회 TF팀 모집 공고</a>
-                    <span class="item-date">2026.07.18</span>
-                </div>
-                <div class="minimal-item">
-                    <a href="#" class="item-title">여름철 교내 냉방 가이드라인 관련 설문조사</a>
-                    <span class="item-date">2026.07.12</span>
-                </div>
+                <div id="recentNoticeContainer">
+                    </div>
             </div>
 
             <div class="minimal-list" id="calendar">
@@ -421,14 +411,14 @@
             <a href="https://hshshs.riroschool.kr/index.php" target="_blank" class="footer-btn">형석고등학교 리로스쿨</a>
         </div>
 
-        <p class="version-info">Ver. open beta 1.2.0</p>
+        <p class="version-info">Ver. beta 2.0.0</p>
         <p class="copyright">© 2026 형석고등학교 학생회. All rights reserved.</p>
     </footer>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
-        import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCWPYuQeihfDgp5tVlrObBVRs2UZDlTkks",
@@ -451,9 +441,13 @@
         window.fbDeleteDoc = deleteDoc;
         window.fbCollection = collection;
         window.fbGetDocs = getDocs;
+        window.fbQuery = query;
+        window.fbOrderBy = orderBy;
+        window.fbLimit = limit;
 
-        // Firebase에서 일정 불러와서 달력 초기 렌더링
+        // Firebase에서 일정 및 공지사항 초기 렌더링
         loadCalendarFromFirebase();
+        loadLatestNotices();
     </script>
 
     <script>
@@ -493,6 +487,34 @@
                 console.error("Firebase 일정 로드 실패:", error);
             }
         }
+
+        // 최신 공지사항 3개만 불러오기
+        async function loadLatestNotices() {
+            if (!window.db) return;
+            try {
+                // 'notices' 컬렉션에서 최근 작성된 3개의 문서를 가져옴
+                const q = window.fbQuery(window.fbCollection(window.db, "notices"), window.fbOrderBy("date", "desc"), window.fbLimit(3));
+                const querySnapshot = await window.fbGetDocs(q);
+                
+                if (!querySnapshot.empty) {
+                    const noticeContainer = document.getElementById('recentNoticeContainer');
+                    noticeContainer.innerHTML = ''; // 기존 내용이 혹시 있다면 비우기
+                    
+                    querySnapshot.forEach((docSnap) => {
+                        const data = docSnap.data();
+                        noticeContainer.innerHTML += `
+                            <div class="minimal-item">
+                                <a href="anno.html?id=${docSnap.id}" class="item-title">${data.title || '제목 없음'}</a>
+                                <span class="item-date">${data.date || ''}</span>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (error) {
+                console.log("공지사항 DB 연동 대기 중 (데이터가 없거나 컬렉션 미생성):", error);
+            }
+        }
+        window.loadLatestNotices = loadLatestNotices;
 
         // 3. 달력 화면 렌더링
         function renderCalendar(year, month) {
@@ -612,4 +634,3 @@
     </script>
 </body>
 </html>
-
