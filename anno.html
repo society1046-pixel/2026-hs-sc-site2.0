@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>형석고 학생회 - 공지사항</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #7BA4DB;
+            --bg-color: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --border-color: #EEEEEE;
+            --text-main: #333333;
+            --text-sub: #64748B;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans KR', sans-serif; letter-spacing: -0.5px; }
+        body { background-color: var(--bg-color); color: var(--text-main); }
+        
+        main { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        
+        .board-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        }
+
+        .page-title { font-size: 24px; font-weight: 700; margin-bottom: 20px; color: var(--text-main); }
+
+        .board-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .search-box {
+            display: flex;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #DDD;
+            border-radius: 6px 0 0 6px;
+            outline: none;
+        }
+        
+        .search-box button {
+            padding: 10px 15px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0 6px 6px 0;
+            cursor: pointer;
+        }
+
+        .btn-write {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: #FFF;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            display: none; /* 권한 확인 후 표시 */
+        }
+
+        .anno-list { list-style: none; border-top: 2px solid var(--text-main); }
+        
+        .anno-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 10px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .anno-item:hover { background: #F1F5F9; }
+        
+        .anno-title { font-size: 16px; font-weight: 500; flex: 1; }
+        .anno-meta { font-size: 13px; color: var(--text-sub); display: flex; gap: 15px; width: 180px; justify-content: flex-end;}
+        .anno-file-icon { color: var(--primary-color); margin-left: 5px; }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 5px;
+        }
+        .page-btn {
+            padding: 5px 10px;
+            border: 1px solid #DDD;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .page-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* 모달 공통 스타일 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none; justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 12px;
+            width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #DDD; border-radius: 6px; }
+        textarea.form-control { resize: vertical; min-height: 200px; }
+        
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .btn-cancel { padding: 10px 20px; background: #94A3B8; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-submit { padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; }
+
+        /* 글 보기 모달 스타일 */
+        .view-meta { font-size: 13px; color: var(--text-sub); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+        .view-body { min-height: 150px; line-height: 1.6; margin-bottom: 20px; white-space: pre-wrap; }
+        .file-preview-area { margin-top: 20px; padding: 15px; background: #F8FAFC; border-radius: 8px; }
+        .file-preview-area img { max-width: 100%; border-radius: 4px; }
+        .file-preview-area a { color: var(--primary-color); text-decoration: none; font-weight: 500; display: inline-block; margin-top: 10px;}
+    </style>
+</head>
+<body>
+
+<script src="head.js"></script>
+
+<main>
+    <div class="board-container">
+        <h2 class="page-title"><i class="fa-solid fa-bullhorn" style="color: var(--primary-color);"></i> 공지사항</h2>
+        
+        <div class="board-header">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="검색어를 입력하세요">
+                <button onclick="searchAnno()"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </div>
+            <button id="btnWrite" class="btn-write" onclick="openWriteModal()">글쓰기</button>
+        </div>
+
+        <ul class="anno-list" id="annoList">
+            </ul>
+
+        <div class="pagination" id="pagination">
+            </div>
+    </div>
+</main>
+
+<div class="modal-overlay" id="writeModal">
+    <div class="modal-content">
+        <h3 class="modal-title">공지사항 작성</h3>
+        <div class="form-group">
+            <input type="text" id="writeTitle" class="form-control" placeholder="제목을 입력하세요">
+        </div>
+        <div class="form-group">
+            <textarea id="writeContent" class="form-control" placeholder="내용을 입력하세요"></textarea>
+        </div>
+        <div class="form-group">
+            <label style="font-size: 13px; color: var(--text-sub); display: block; margin-bottom: 5px;">첨부파일 (선택)</label>
+            <input type="file" id="writeFile" class="form-control">
+        </div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModals()">취소</button>
+            <button class="btn-submit" onclick="submitAnno()" id="btnSubmit">등록하기</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="viewModal">
+    <div class="modal-content">
+        <h3 class="modal-title" id="viewTitle"></h3>
+        <div class="view-meta" id="viewMeta"></div>
+        <div class="view-body" id="viewContent"></div>
+        <div class="file-preview-area" id="filePreviewArea" style="display: none;">
+            </div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModals()">닫기</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // Firebase 설정
+    const firebaseConfig = {
+        apiKey: "AIzaSyCWPYuQeihfDgp5tVlrObBVRs2UZDlTkks",
+        authDomain: "hyeongsok-student-counci-e6115.firebaseapp.com",
+        projectId: "hyeongsok-student-counci-e6115",
+        storageBucket: "hyeongsok-student-counci-e6115.firebasestorage.app",
+        messagingSenderId: "847440892138",
+        appId: "1:847440892138:web:152021aaaf5f330b2d0793",
+        measurementId: "G-F40YFFMGWE"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ==========================================
+    // Cloudinary 설정 정보 (안전하게 Name과 Preset만 포함됨)
+    // ==========================================
+    const CLOUDINARY_CLOUD_NAME = "dewystlen"; 
+    const CLOUDINARY_UPLOAD_PRESET = "hssc2.0"; 
+    
+    // 상태 변수
+    let allAnnos = []; // 전체 데이터
+    let filteredAnnos = []; // 검색된 데이터
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    let currentUser = null;
+
+    // 페이지 로드 시 실행
+    window.onload = async () => {
+        checkAuth();
+        await loadAnnos();
+    };
+
+    // 권한 체크 및 글쓰기 버튼 표시 로직
+    function checkAuth() {
+        const session = JSON.parse(localStorage.getItem('userSession'));
+        if (session) {
+            currentUser = session;
+            // 관리자, 선생님이거나 부서가 있는 학생인 경우 글쓰기 권한 부여
+            const hasPermission = 
+                ['admin', 'teacher'].includes(currentUser.role) || 
+                (currentUser.department && currentUser.department !== 'none' && currentUser.department !== '');
+            
+            if (hasPermission) {
+                document.getElementById('btnWrite').style.display = 'block';
+            }
+        }
+    }
+
+    // 데이터 불러오기
+    async function loadAnnos() {
+        try {
+            const q = query(collection(db, "announcements"), orderBy("createdAt", "desc"));
+            const querySnapshot = await getDocs(q);
+            
+            allAnnos = [];
+            querySnapshot.forEach((doc) => {
+                let data = doc.data();
+                data.id = doc.id;
+                // 날짜 포맷팅
+                if (data.createdAt) {
+                    const date = data.createdAt.toDate();
+                    data.dateStr = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+                } else {
+                    data.dateStr = "방금 전";
+                }
+                allAnnos.push(data);
+            });
+            
+            filteredAnnos = [...allAnnos];
+            renderPage(1);
+        } catch (error) {
+            console.error("데이터 로드 에러:", error);
+        }
+    }
+
+    // 화면에 리스트 그리기
+    window.renderPage = function(page) {
+        currentPage = page;
+        const listEl = document.getElementById('annoList');
+        listEl.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const pageData = filteredAnnos.slice(startIndex, endIndex);
+
+        if (pageData.length === 0) {
+            listEl.innerHTML = '<li style="text-align:center; padding: 20px; color: #94A3B8;">등록된 공지사항이 없습니다.</li>';
+            renderPagination();
+            return;
+        }
+
+        pageData.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'anno-item';
+            li.onclick = () => openViewModal(item);
+            
+            let fileIcon = item.fileUrl ? '<i class="fa-solid fa-paperclip anno-file-icon"></i>' : '';
+            
+            li.innerHTML = `
+                <div class="anno-title">${item.title} ${fileIcon}</div>
+                <div class="anno-meta">
+                    <span>${item.authorName}</span>
+                    <span>${item.dateStr}</span>
+                </div>
+            `;
+            listEl.appendChild(li);
+        });
+
+        renderPagination();
+    }
+
+    // 페이징 버튼 그리기
+    function renderPagination() {
+        const paginationEl = document.getElementById('pagination');
+        paginationEl.innerHTML = '';
+        
+        const totalPages = Math.ceil(filteredAnnos.length / itemsPerPage);
+        
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.innerText = i;
+            btn.onclick = () => renderPage(i);
+            paginationEl.appendChild(btn);
+        }
+    }
+
+    // 검색 기능
+    window.searchAnno = function() {
+        const keyword = document.getElementById('searchInput').value.toLowerCase();
+        filteredAnnos = allAnnos.filter(item => 
+            item.title.toLowerCase().includes(keyword) || 
+            item.content.toLowerCase().includes(keyword)
+        );
+        renderPage(1);
+    }
+
+    // 모달 제어
+    window.openWriteModal = function() {
+        document.getElementById('writeTitle').value = '';
+        document.getElementById('writeContent').value = '';
+        document.getElementById('writeFile').value = '';
+        document.getElementById('writeModal').style.display = 'flex';
+    }
+
+    window.closeModals = function() {
+        document.getElementById('writeModal').style.display = 'none';
+        document.getElementById('viewModal').style.display = 'none';
+    }
+
+    window.openViewModal = function(item) {
+        document.getElementById('viewTitle').innerText = item.title;
+        document.getElementById('viewMeta').innerText = `작성자: ${item.authorName} | 작성일: ${item.dateStr}`;
+        document.getElementById('viewContent').innerText = item.content;
+        
+        const previewArea = document.getElementById('filePreviewArea');
+        if (item.fileUrl) {
+            previewArea.style.display = 'block';
+            previewArea.innerHTML = '<p style="font-size:13px; margin-bottom:10px; color:#64748B;"><i class="fa-solid fa-paperclip"></i> 첨부파일</p>';
+            
+            // 이미지인 경우 미리보기 제공
+            if (item.fileType && item.fileType.startsWith('image/')) {
+                previewArea.innerHTML += `<img src="${item.fileUrl}" alt="첨부 이미지">`;
+            } else {
+                // 이미지가 아닌 경우 다운로드 링크 제공
+                previewArea.innerHTML += `<a href="${item.fileUrl}" target="_blank" download><i class="fa-solid fa-download"></i> ${item.fileName || '파일 다운로드'}</a>`;
+            }
+        } else {
+            previewArea.style.display = 'none';
+        }
+
+        document.getElementById('viewModal').style.display = 'flex';
+    }
+
+    // Cloudinary 파일 업로드 함수
+    async function uploadToCloudinary(file) {
+        if (!CLOUDINARY_CLOUD_NAME || CLOUDINARY_CLOUD_NAME === "YOUR_CLOUD_NAME") {
+            alert("시스템 오류: Cloudinary 설정이 안 되어 있습니다. 관리자에게 문의하세요.");
+            throw new Error("Cloudinary info missing");
+        }
+
+        const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/upload`;
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+        const response = await fetch(url, {
+            method: "POST",
+            body: formData
+        });
+        
+        if (!response.ok) throw new Error("업로드 실패");
+        return await response.json();
+    }
+
+    // 글 등록
+    window.submitAnno = async function() {
+        const title = document.getElementById('writeTitle').value.trim();
+        const content = document.getElementById('writeContent').value.trim();
+        const fileInput = document.getElementById('writeFile');
+        const btnSubmit = document.getElementById('btnSubmit');
+
+        if (!title || !content) {
+            alert("제목과 내용을 모두 입력해주세요.");
+            return;
+        }
+
+        try {
+            btnSubmit.innerText = "업로드 중...";
+            btnSubmit.disabled = true;
+
+            let fileUrl = null;
+            let fileType = null;
+            let fileName = null;
+
+            // 파일이 첨부된 경우 Cloudinary에 먼저 업로드
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const uploadResult = await uploadToCloudinary(file);
+                fileUrl = uploadResult.secure_url;
+                fileType = file.type;
+                fileName = file.name;
+            }
+
+            // Firebase에 데이터 저장
+            await addDoc(collection(db, "announcements"), {
+                title: title,
+                content: content,
+                authorId: currentUser.id,
+                authorName: currentUser.name,
+                createdAt: serverTimestamp(),
+                fileUrl: fileUrl,
+                fileType: fileType,
+                fileName: fileName
+            });
+
+            alert("공지사항이 등록되었습니다.");
+            closeModals();
+            await loadAnnos(); // 목록 새로고침
+
+        } catch (error) {
+            console.error("글 등록 에러:", error);
+            alert("등록 중 오류가 발생했습니다.");
+        } finally {
+            btnSubmit.innerText = "등록하기";
+            btnSubmit.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>
