@@ -34,12 +34,13 @@ const headerHTML = `
         font-weight: 700;
         color: #111111;
         letter-spacing: -0.5px;
+        white-space: nowrap;
     }
     
     /* 중앙 메인 메뉴 (PC) - 드롭다운 포함 */
     .nav-center {
         display: flex;
-        gap: 40px;
+        gap: 15px; /* 메뉴가 많아져서 간격을 15px로 조정 */
         height: 100%;
     }
     .nav-item {
@@ -57,6 +58,7 @@ const headerHTML = `
         display: flex;
         align-items: center;
         gap: 5px;
+        white-space: nowrap;
     }
     .nav-item > a i {
         font-size: 12px;
@@ -76,7 +78,7 @@ const headerHTML = `
         left: 50%;
         transform: translateX(-50%);
         background-color: #FFFFFF;
-        min-width: 150px;
+        min-width: 120px;
         box-shadow: 0 8px 24px rgba(0,0,0,0.08);
         border-radius: 8px;
         border: 1px solid #EEEEEE;
@@ -101,6 +103,7 @@ const headerHTML = `
         font-weight: 400;
         text-align: center;
         transition: background-color 0.2s, color 0.2s;
+        white-space: nowrap;
     }
     .dropdown-content a:hover {
         background-color: #F8FAFC;
@@ -126,6 +129,7 @@ const headerHTML = `
         font-weight: 500;
         cursor: pointer;
         transition: all 0.2s ease;
+        white-space: nowrap;
     }
     .auth-btn:hover {
         background-color: #7BA4DB;
@@ -148,6 +152,7 @@ const headerHTML = `
         display: flex;
         align-items: center;
         gap: 5px;
+        white-space: nowrap;
     }
     .profile-link:hover {
         color: #7BA4DB;
@@ -167,6 +172,7 @@ const headerHTML = `
         color: #475569;
         cursor: pointer;
         transition: 0.2s;
+        white-space: nowrap;
     }
     .logout-btn:hover {
         background: #E2E8F0;
@@ -182,7 +188,7 @@ const headerHTML = `
         color: #333333;
     }
 
-    /* 모바일 전용 사이드바 생략(기존 동일) */
+    /* 모바일 전용 사이드바 */
     .sidebar {
         position: fixed; top: 0; right: -280px; width: 280px; height: 100%;
         background-color: #FFFFFF; box-shadow: -5px 0 25px rgba(0,0,0,0.03);
@@ -207,8 +213,7 @@ const headerHTML = `
     .sidebar-overlay.active { display: block; }
 
     /* 모바일 최적화 */
-    @media (max-width: 768px) {
-        .nav-container { height: 70px; }
+    @media (max-width: 1024px) {
         .nav-center { display: none; }
         .auth-container-desktop { display: none; }
         .menu-toggle { display: block; }
@@ -226,8 +231,7 @@ const headerHTML = `
             <div class="nav-item">
                 <a href="#">알림 <i class="fa-solid fa-chevron-down"></i></a>
                 <div class="dropdown-content">
-                    <a href="notice.html">공지사항</a>
-                    <a href="#">건의함</a>
+                    <a href="anno.html">공지사항</a>
                 </div>
             </div>
             <div class="nav-item">
@@ -238,22 +242,41 @@ const headerHTML = `
                     <a href="#">3학년부</a>
                 </div>
             </div>
+            
             <div class="nav-item">
-                <a href="#">부서 <i class="fa-solid fa-chevron-down"></i></a>
+                <a href="#">회장단 <i class="fa-solid fa-chevron-down"></i></a>
                 <div class="dropdown-content">
-                    <a href="#">회장단</a>
-                    <a href="#">콘텐츠소통부</a>
-                    <a href="#">문화소통부</a>
-                    <a href="#">건강활동부</a>
-                    <a href="#">학술문예부</a>
-                    <a href="#">생활안전부</a>
+                    <a href="#">부서 정보</a>
                 </div>
             </div>
             <div class="nav-item">
-                <a href="#">기타 <i class="fa-solid fa-chevron-down"></i></a>
+                <a href="#">콘텐츠소통부 <i class="fa-solid fa-chevron-down"></i></a>
                 <div class="dropdown-content">
-                    <a href="https://school.cbe.go.kr/hshs-h" target="_blank">학교 홈페이지</a>
-                    <a href="#">급식표 / 시간표</a>
+                    <a href="#">부서 정보</a>
+                </div>
+            </div>
+            <div class="nav-item">
+                <a href="#">문화소통부 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="#">부서 정보</a>
+                </div>
+            </div>
+            <div class="nav-item">
+                <a href="#">건강활동부 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="#">부서 정보</a>
+                </div>
+            </div>
+            <div class="nav-item">
+                <a href="#">학술문예부 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="#">부서 정보</a>
+                </div>
+            </div>
+            <div class="nav-item">
+                <a href="#">생활안전부 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="#">부서 정보</a>
                 </div>
             </div>
         </nav>
@@ -278,8 +301,7 @@ const headerHTML = `
         <div class="mobile-nav-item">
             <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">알림 <i class="fa-solid fa-chevron-down"></i></div>
             <div class="mobile-dropdown-content">
-                <a href="notice.html" onclick="closeSidebar()">공지사항</a>
-                <a href="#" onclick="closeSidebar()">건의함</a>
+                <a href="anno.html" onclick="closeSidebar()">공지사항</a>
             </div>
         </div>
         <div class="mobile-nav-item">
@@ -290,22 +312,47 @@ const headerHTML = `
                 <a href="#" onclick="closeSidebar()">3학년부</a>
             </div>
         </div>
+        
         <div class="mobile-nav-item">
-            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">부서 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">회장단 <i class="fa-solid fa-chevron-down"></i></div>
             <div class="mobile-dropdown-content">
-                <a href="#" onclick="closeSidebar()">회장단</a>
-                <a href="#" onclick="closeSidebar()">콘텐츠소통부</a>
-                <a href="#" onclick="closeSidebar()">문화소통부</a>
-                <a href="#" onclick="closeSidebar()">건강활동부</a>
-                <a href="#" onclick="closeSidebar()">학술문예부</a>
-                <a href="#" onclick="closeSidebar()">생활안전부</a>
+                <a href="#" onclick="closeSidebar()">부서 정보</a>
+            </div>
+        </div>
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">콘텐츠소통부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="#" onclick="closeSidebar()">부서 정보</a>
+            </div>
+        </div>
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">문화소통부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="#" onclick="closeSidebar()">부서 정보</a>
+            </div>
+        </div>
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">건강활동부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="#" onclick="closeSidebar()">부서 정보</a>
+            </div>
+        </div>
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">학술문예부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="#" onclick="closeSidebar()">부서 정보</a>
+            </div>
+        </div>
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">생활안전부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="#" onclick="closeSidebar()">부서 정보</a>
             </div>
         </div>
         <div class="mobile-nav-item">
             <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">기타 <i class="fa-solid fa-chevron-down"></i></div>
             <div class="mobile-dropdown-content">
-                <a href="https://school.cbe.go.kr/hshs-h" target="_blank" onclick="closeSidebar()">학교 홈페이지</a>
-                <a href="#" onclick="closeSidebar()">급식표 / 시간표</a>
+                <a href="#" onclick="closeSidebar()">사이트 정보</a>
             </div>
         </div>
     </nav>
@@ -330,11 +377,10 @@ document.addEventListener("DOMContentLoaded", () => {
     checkLoginState();
 });
 
-// 로그인 상태 및 직책 매핑 고도화
+// 로그인 상태 및 직책 매핑 설정
 function checkLoginState() {
     const userSession = JSON.parse(localStorage.getItem('userSession'));
     
-    // 세분화된 직책 및 부서 매핑 (누락된 직책 추가 및 한글 저장 대비)
     const roleMapping = {
         'student': '일반학생',
         '학생': '일반학생',
@@ -363,7 +409,6 @@ function checkLoginState() {
     const mobileContainer = document.getElementById('authContainerMobile');
 
     if (userSession) {
-        // 매핑되지 않은 값이 들어오더라도 기본적으로 '일반학생'이 출력되도록 수정
         let parsedRole = roleMapping[userSession.role] || '일반학생';
         let parsedDept = deptMapping[userSession.department] || '';
         let finalRoleText = parsedDept ? `${parsedDept} ${parsedRole}` : parsedRole;
