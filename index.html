@@ -488,30 +488,49 @@
             }
         }
 
-        // 최신 공지사항 3개만 불러오기
+        // 최신 공지사항 3개만 불러오기 (announcements 컬렉션 연동 수정)
         async function loadLatestNotices() {
             if (!window.db) return;
             try {
-                // 'notices' 컬렉션에서 최근 작성된 3개의 문서를 가져옴
-                const q = window.fbQuery(window.fbCollection(window.db, "notices"), window.fbOrderBy("date", "desc"), window.fbLimit(3));
+                // 'announcements' 컬렉션에서 최근 작성된 3개의 문서를 가져옴
+                const q = window.fbQuery(
+                    window.fbCollection(window.db, "announcements"), 
+                    window.fbOrderBy("createdAt", "desc"), 
+                    window.fbLimit(3)
+                );
                 const querySnapshot = await window.fbGetDocs(q);
                 
-                if (!querySnapshot.empty) {
-                    const noticeContainer = document.getElementById('recentNoticeContainer');
-                    noticeContainer.innerHTML = ''; // 기존 내용이 혹시 있다면 비우기
-                    
-                    querySnapshot.forEach((docSnap) => {
-                        const data = docSnap.data();
-                        noticeContainer.innerHTML += `
-                            <div class="minimal-item">
-                                <a href="anno.html?id=${docSnap.id}" class="item-title">${data.title || '제목 없음'}</a>
-                                <span class="item-date">${data.date || ''}</span>
-                            </div>
-                        `;
-                    });
+                const noticeContainer = document.getElementById('recentNoticeContainer');
+                noticeContainer.innerHTML = ''; // 기존 내용 비우기
+
+                if (querySnapshot.empty) {
+                    noticeContainer.innerHTML = '<div style="padding: 15px 0; color: #94A3B8; font-size: 14px;">등록된 공지사항이 없습니다.</div>';
+                    return;
                 }
+                
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    
+                    // 날짜 데이터 포맷팅
+                    let dateStr = "";
+                    if (data.createdAt) {
+                        const date = data.createdAt.toDate();
+                        dateStr = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+                    } else {
+                        dateStr = "방금 전";
+                    }
+
+                    let fileIcon = data.fileUrl ? '<i class="fa-solid fa-paperclip" style="color:#7BA4DB; margin-left:4px;"></i>' : '';
+
+                    noticeContainer.innerHTML += `
+                        <div class="minimal-item">
+                            <a href="anno.html" class="item-title">${data.title || '제목 없음'} ${fileIcon}</a>
+                            <span class="item-date">${dateStr}</span>
+                        </div>
+                    `;
+                });
             } catch (error) {
-                console.log("공지사항 DB 연동 대기 중 (데이터가 없거나 컬렉션 미생성):", error);
+                console.error("공지사항 DB 불러오기 에러:", error);
             }
         }
         window.loadLatestNotices = loadLatestNotices;
