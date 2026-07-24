@@ -133,6 +133,10 @@
         .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
         .btn-cancel { padding: 10px 20px; background: #94A3B8; color: white; border: none; border-radius: 6px; cursor: pointer; }
         .btn-submit { padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; }
+        
+        /* 추가된 수정/삭제 버튼 스타일 */
+        .btn-edit { padding: 10px 20px; background: #F59E0B; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-delete { padding: 10px 20px; background: #EF4444; color: white; border: none; border-radius: 6px; cursor: pointer; }
 
         /* 글 보기 모달 스타일 */
         .view-meta { font-size: 13px; color: var(--text-sub); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
@@ -168,7 +172,7 @@
 
 <div class="modal-overlay" id="writeModal">
     <div class="modal-content">
-        <h3 class="modal-title">공지사항 작성</h3>
+        <h3 class="modal-title" id="writeModalTitle">공지사항 작성</h3>
         <div class="form-group">
             <input type="text" id="writeTitle" class="form-control" placeholder="제목을 입력하세요">
         </div>
@@ -176,7 +180,7 @@
             <textarea id="writeContent" class="form-control" placeholder="내용을 입력하세요"></textarea>
         </div>
         <div class="form-group">
-            <label style="font-size: 13px; color: var(--text-sub); display: block; margin-bottom: 5px;">첨부파일 (선택)</label>
+            <label style="font-size: 13px; color: var(--text-sub); display: block; margin-bottom: 5px;">첨부파일 (선택) - <span id="currentFileName" style="color:var(--primary-color);"></span></label>
             <input type="file" id="writeFile" class="form-control">
         </div>
         <div class="modal-actions">
@@ -193,15 +197,20 @@
         <div class="view-body" id="viewContent"></div>
         <div class="file-preview-area" id="filePreviewArea" style="display: none;">
             </div>
-        <div class="modal-actions">
+        <div class="modal-actions" style="justify-content: space-between;">
+            <div id="authorActions" style="display: none; gap: 10px;">
+                <button class="btn-edit" onclick="openEditModal()">수정</button>
+                <button class="btn-delete" onclick="deleteAnno()">삭제</button>
+            </div>
             <button class="btn-cancel" onclick="closeModals()">닫기</button>
         </div>
     </div>
 </div>
 
 <script type="module">
+    // updateDoc, doc, deleteDoc 등을 추가로 import 합니다.
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     // Firebase 설정
     const firebaseConfig = {
@@ -229,6 +238,10 @@
     let currentPage = 1;
     const itemsPerPage = 10;
     let currentUser = null;
+    
+    // 추가된 상태 변수 (수정 및 삭제 시 사용)
+    let currentViewItem = null; 
+    let currentEditId = null;
 
     // 페이지 로드 시 실행
     window.onload = async () => {
@@ -341,20 +354,61 @@
         renderPage(1);
     }
 
-    // 모달 제어
+    // 작성 모달 열기 (새 글 작성)
     window.openWriteModal = function() {
+        currentEditId = null; // 수정 모드 해제
+        document.getElementById('writeModalTitle').innerText = '공지사항 작성';
         document.getElementById('writeTitle').value = '';
         document.getElementById('writeContent').value = '';
         document.getElementById('writeFile').value = '';
+        document.getElementById('currentFileName').innerText = '';
+        document.getElementById('btnSubmit').innerText = '등록하기';
         document.getElementById('writeModal').style.display = 'flex';
     }
 
+    // 수정 모달 열기
+    window.openEditModal = function() {
+        if (!currentViewItem) return;
+        
+        currentEditId = currentViewItem.id; // 수정 모드로 설정
+        document.getElementById('writeModalTitle').innerText = '공지사항 수정';
+        document.getElementById('writeTitle').value = currentViewItem.title;
+        document.getElementById('writeContent').value = currentViewItem.content;
+        document.getElementById('writeFile').value = ''; // 파일은 보안상 미리 채울 수 없음
+        document.getElementById('currentFileName').innerText = currentViewItem.fileName ? `기존 파일: ${currentViewItem.fileName}` : '기존 첨부파일 없음';
+        document.getElementById('btnSubmit').innerText = '수정하기';
+        
+        document.getElementById('viewModal').style.display = 'none';
+        document.getElementById('writeModal').style.display = 'flex';
+    }
+
+    // 삭제 기능
+    window.deleteAnno = async function() {
+        if (!currentViewItem) return;
+        
+        if (confirm("정말 이 공지사항을 삭제하시겠습니까?")) {
+            try {
+                await deleteDoc(doc(db, "announcements", currentViewItem.id));
+                alert("삭제되었습니다.");
+                closeModals();
+                await loadAnnos(); // 삭제 후 목록 새로고침
+            } catch (error) {
+                console.error("삭제 중 오류:", error);
+                alert("삭제 중 오류가 발생했습니다.");
+            }
+        }
+    }
+
+    // 모달 닫기
     window.closeModals = function() {
         document.getElementById('writeModal').style.display = 'none';
         document.getElementById('viewModal').style.display = 'none';
     }
 
+    // 글 보기 모달 열기
     window.openViewModal = function(item) {
+        currentViewItem = item; // 현재 열린 글 데이터 저장
+        
         document.getElementById('viewTitle').innerText = item.title;
         document.getElementById('viewMeta').innerText = `작성자: ${item.authorName} | 작성일: ${item.dateStr}`;
         document.getElementById('viewContent').innerText = item.content;
@@ -373,6 +427,14 @@
             }
         } else {
             previewArea.style.display = 'none';
+        }
+
+        // 권한 확인: 본인이 작성자이거나 관리자일 경우에만 수정/삭제 버튼 노출
+        const authorActions = document.getElementById('authorActions');
+        if (currentUser && (currentUser.id === item.authorId || currentUser.role === 'admin')) {
+            authorActions.style.display = 'flex';
+        } else {
+            authorActions.style.display = 'none';
         }
 
         document.getElementById('viewModal').style.display = 'flex';
@@ -399,7 +461,7 @@
         return await response.json();
     }
 
-    // 글 등록
+    // 글 등록 및 수정
     window.submitAnno = async function() {
         const title = document.getElementById('writeTitle').value.trim();
         const content = document.getElementById('writeContent').value.trim();
@@ -412,14 +474,15 @@
         }
 
         try {
-            btnSubmit.innerText = "업로드 중...";
+            btnSubmit.innerText = currentEditId ? "수정 중..." : "업로드 중...";
             btnSubmit.disabled = true;
 
-            let fileUrl = null;
-            let fileType = null;
-            let fileName = null;
+            // 수정 모드인 경우 기존 파일 정보 유지 설정
+            let fileUrl = currentEditId ? currentViewItem.fileUrl : null;
+            let fileType = currentEditId ? currentViewItem.fileType : null;
+            let fileName = currentEditId ? currentViewItem.fileName : null;
 
-            // 파일이 첨부된 경우 Cloudinary에 먼저 업로드
+            // 새로운 파일이 첨부된 경우 Cloudinary에 덮어쓰듯 업로드
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
                 const uploadResult = await uploadToCloudinary(file);
@@ -428,27 +491,40 @@
                 fileName = file.name;
             }
 
-            // Firebase에 데이터 저장
-            await addDoc(collection(db, "announcements"), {
-                title: title,
-                content: content,
-                authorId: currentUser.id,
-                authorName: currentUser.name,
-                createdAt: serverTimestamp(),
-                fileUrl: fileUrl,
-                fileType: fileType,
-                fileName: fileName
-            });
+            if (currentEditId) {
+                // [1] 기존 글 수정 (Update)
+                const docRef = doc(db, "announcements", currentEditId);
+                await updateDoc(docRef, {
+                    title: title,
+                    content: content,
+                    fileUrl: fileUrl,
+                    fileType: fileType,
+                    fileName: fileName
+                });
+                alert("공지사항이 수정되었습니다.");
+            } else {
+                // [2] 새 글 등록 (Add)
+                await addDoc(collection(db, "announcements"), {
+                    title: title,
+                    content: content,
+                    authorId: currentUser.id,
+                    authorName: currentUser.name,
+                    createdAt: serverTimestamp(),
+                    fileUrl: fileUrl,
+                    fileType: fileType,
+                    fileName: fileName
+                });
+                alert("공지사항이 등록되었습니다.");
+            }
 
-            alert("공지사항이 등록되었습니다.");
             closeModals();
             await loadAnnos(); // 목록 새로고침
 
         } catch (error) {
-            console.error("글 등록 에러:", error);
-            alert("등록 중 오류가 발생했습니다.");
+            console.error("글 등록/수정 에러:", error);
+            alert("저장 중 오류가 발생했습니다.");
         } finally {
-            btnSubmit.innerText = "등록하기";
+            btnSubmit.innerText = currentEditId ? "수정하기" : "등록하기";
             btnSubmit.disabled = false;
         }
     }
