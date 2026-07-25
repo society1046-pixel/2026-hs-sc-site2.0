@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>형석고등학교 학생회 - 메인</title>
+    <title>hssc - 메인화면</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -371,11 +371,11 @@
             </div>
 
             <div class="minimal-list" id="calendar">
-                <h2 class="section-title">학사 일정 (Calendar)</h2>
+                <h2 class="section-title">학사 및 학생회 일정</h2>
                 
                 <div class="calendar-container">
                     <div class="admin-calendar-tip" id="adminCalendarTip">
-                        <i class="fa-solid fa-circle-info"></i> 날짜 칸을 클릭하면 간편하게 학사 일정을 편집할 수 있습니다. (Firebase 저장 연동)
+                        <i class="fa-solid fa-circle-info"></i> 날짜 칸을 클릭하면 간편하게 학사 일정을 편집할 수 있습니다.
                     </div>
 
                     <div class="calendar-header">
@@ -395,7 +395,7 @@
     <div class="cal-modal-overlay" id="calModalOverlay" onclick="closeCalendarModal()"></div>
     <div class="cal-modal" id="calModal">
         <h3 id="modalDateTitle">학사 일정 등록</h3>
-        <p>일정 내용을 자유롭게 입력하세요. 엔터(줄바꿈)가 지원됩니다.<br>(내용을 전부 비우고 저장하면 일정 삭제)</p>
+        <p>일정 내용을 자유롭게 입력하세요(enter로 여러 일정 등록<br>(내용을 전부 비우고 저장하면 일정 삭제)</p>
         <textarea id="modalTextarea" placeholder="예: 대의원회의&#10;축제 준비 미팅"></textarea>
         <div class="cal-modal-btns">
             <button class="modal-btn-cancel" onclick="closeCalendarModal()">취소</button>
@@ -411,8 +411,8 @@
             <a href="https://hshshs.riroschool.kr/index.php" target="_blank" class="footer-btn">형석고등학교 리로스쿨</a>
         </div>
 
-        <p class="version-info">Ver. beta 2.0.0</p>
-        <p class="copyright">© 2026 형석고등학교 학생회. All rights reserved.</p>
+        <p class="version-info">Ver. beta 2.0.1</p>
+        <p class="copyright">© 형석고등학교 학생회. All rights reserved.</p>
     </footer>
 
     <script type="module">
