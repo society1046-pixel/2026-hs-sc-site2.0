@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>형석고등학교 학생회 - 로그인 / 회원가입</title>
+    <title>hssc - 로그인 및 회원가입</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -158,7 +158,7 @@
                 
                 <div class="find-links">
                     <span onclick="openModal('modalFindId')">아이디 찾기</span> | 
-                    <span onclick="openModal('modalResetPw')">비밀번호 재설정</span>
+                    <span onclick="openModal('modalResetPw')">비밀번호 찾기</span>
                 </div>
             </form>
 
@@ -167,12 +167,12 @@
                     <label for="signupName">이름</label>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-font"></i>
-                        <input type="text" id="signupName" placeholder="실명을 입력하세요" required>
+                        <input type="text" id="signupName" placeholder="이름을 입력하세요" required>
                     </div>
                 </div>
 
                 <div class="input-group" id="studentInfoField">
-                    <label>학번 정보</label>
+                    <label>교내 정보</label>
                     <div class="student-info-row">
                         <div class="input-wrapper">
                             <i class="fa-solid fa-graduation-cap"></i>
@@ -224,10 +224,10 @@
                     <label>선생님 가입 방식</label>
                     <div class="radio-group">
                         <label>
-                            <input type="radio" name="teacherMethod" value="code" checked onchange="toggleRoleFields()"> 코드로 즉시 가입
+                            <input type="radio" name="teacherMethod" value="code" checked onchange="toggleRoleFields()"> 코드로 가입
                         </label>
                         <label>
-                            <input type="radio" name="teacherMethod" value="request" onchange="toggleRoleFields()"> 가입 요청 (승인 대기)
+                            <input type="radio" name="teacherMethod" value="request" onchange="toggleRoleFields()"> 가입 요청
                         </label>
                     </div>
                 </div>
@@ -236,7 +236,7 @@
                     <label for="teacherCode">선생님 인증 코드</label>
                     <div class="input-wrapper" style="margin-top: 4px;">
                         <i class="fa-solid fa-key"></i>
-                        <input type="password" id="teacherCode" placeholder="교직원 인증 코드 4자리 (0000)">
+                        <input type="password" id="teacherCode" placeholder="인증 코드">
                     </div>
                 </div>
 
@@ -265,7 +265,7 @@
                 <div class="agreement-group">
                     <input type="checkbox" id="privacyAgree" required>
                     <label for="privacyAgree" class="agreement-text">
-                        학생회 사이트 이용을 위한 개인정보(이름, 학번, 연락처) 수집 및 이용에 동의합니다.
+                        #필수: 학생회 사이트 이용을 위한 개인정보(이름, 학번, 연락처) 수집 및 이용에 동의합니다.(가입일로부터 1년, 수집목적: 정보수정 및 개인확인)
                     </label>
                 </div>
 
