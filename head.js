@@ -320,7 +320,7 @@ const headerHTML = `
             </div>
         </div>
         <div class="mobile-nav-item">
-            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">콘텐츠소통부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">홍보미디어부 <i class="fa-solid fa-chevron-down"></i></div>
             <div class="mobile-dropdown-content">
                 <a href="#" onclick="closeSidebar()">부서 정보</a>
             </div>
