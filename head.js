@@ -250,7 +250,7 @@ const headerHTML = `
                 </div>
             </div>
             <div class="nav-item">
-                <a href="#">콘텐츠소통부 <i class="fa-solid fa-chevron-down"></i></a>
+                <a href="#">홍보미디어부 <i class="fa-solid fa-chevron-down"></i></a>
                 <div class="dropdown-content">
                     <a href="#">부서 정보</a>
                 </div>
@@ -262,7 +262,7 @@ const headerHTML = `
                 </div>
             </div>
             <div class="nav-item">
-                <a href="#">건강활동부 <i class="fa-solid fa-chevron-down"></i></a>
+                <a href="#">건강안전부 <i class="fa-solid fa-chevron-down"></i></a>
                 <div class="dropdown-content">
                     <a href="#">부서 정보</a>
                 </div>
@@ -274,7 +274,7 @@ const headerHTML = `
                 </div>
             </div>
             <div class="nav-item">
-                <a href="#">생활안전부 <i class="fa-solid fa-chevron-down"></i></a>
+                <a href="#">환경보호부 <i class="fa-solid fa-chevron-down"></i></a>
                 <div class="dropdown-content">
                     <a href="#">부서 정보</a>
                 </div>
@@ -332,7 +332,7 @@ const headerHTML = `
             </div>
         </div>
         <div class="mobile-nav-item">
-            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">건강활동부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">건강안전부 <i class="fa-solid fa-chevron-down"></i></div>
             <div class="mobile-dropdown-content">
                 <a href="#" onclick="closeSidebar()">부서 정보</a>
             </div>
@@ -344,7 +344,7 @@ const headerHTML = `
             </div>
         </div>
         <div class="mobile-nav-item">
-            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">생활안전부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">환경보호부 <i class="fa-solid fa-chevron-down"></i></div>
             <div class="mobile-dropdown-content">
                 <a href="#" onclick="closeSidebar()">부서 정보</a>
             </div>
@@ -398,11 +398,11 @@ function checkLoginState() {
         'none': '',
         '': '',
         'executives': '회장단',
-        'content_comm': '콘텐츠소통부',
+        'content_comm': '홍보미디어부',
         'culture_comm': '문화소통부',
-        'health_act': '건강활동부',
+        'health_act': '건강안전부',
         'academic_art': '학술문예부',
-        'safety_life': '생활안전부'
+        'safety_life': '환경보호부'
     };
 
     const desktopContainer = document.getElementById('authContainerDesktop');
