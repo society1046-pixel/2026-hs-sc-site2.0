@@ -204,7 +204,7 @@ async function handleSignup(event) {
 
     if (role === 'teacher' && teacherMethod === 'code') {
         const code = document.getElementById('teacherCode')?.value;
-        if (code !== '0000') {
+        if (code !== '260202') {
             alert("선생님 인증 코드가 올바르지 않습니다.");
             return;
         }
