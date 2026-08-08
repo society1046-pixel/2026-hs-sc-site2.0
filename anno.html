@@ -228,11 +228,11 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // ImageKit 설정 정보 (Cloudinary를 대체함)
+    // ImageKit 설정 정보 (로컬 서버 대신 Render 서버 주소로 변경됨)
     const imagekit = new ImageKit({
         publicKey: "public_Rbir3GKcr4bIFefQYWpPO1HicDM=",
         urlEndpoint: "https://ik.imagekit.io/bmjcjmfta",
-        authenticationEndpoint: "http://localhost:3000/api/imagekit-auth" // 로컬 인증 서버 주소
+        authenticationEndpoint: "https://imagekit-auth-server-hssc2-0-site.onrender.com/api/imagekit-auth"
     });
     
     // 상태 변수
@@ -508,7 +508,7 @@
             }, function(err, result) {
                 if (err) {
                     console.error("ImageKit Upload Error Details:", err);
-                    alert("파일 업로드 실패: 인증 서버(pv.js)가 켜져 있는지 확인해주세요.");
+                    alert("파일 업로드 실패: 인증 서버(Render) 연결 상태를 확인해주세요.");
                     reject(err);
                 } else {
                     resolve(result);
