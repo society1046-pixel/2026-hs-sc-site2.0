@@ -468,8 +468,17 @@
             throw new Error("Cloudinary info missing");
         }
 
-        // 이미지 외 PDF, HWP, ZIP 등 모든 첨부파일 지원을 위해 /auto/upload 사용
-        const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
+        // ★ 해결 포인트: 파일 종류에 따라 업로드 경로(resourceType)를 정확히 지정합니다.
+        let resourceType = 'raw'; // 기본값 (PDF, HWP, ZIP 등 문서/압축파일)
+        if (file.type.startsWith('image/')) {
+            resourceType = 'image'; // 이미지 파일
+        } else if (file.type.startsWith('video/')) {
+            resourceType = 'video'; // 동영상 파일
+        }
+
+        // auto 대신 위에서 분류한 resourceType을 주소에 넣습니다.
+        const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
+        
         const formData = new FormData();
         formData.append("file", file);
         formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
