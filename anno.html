@@ -138,12 +138,28 @@
         .btn-edit { padding: 10px 20px; background: #F59E0B; color: white; border: none; border-radius: 6px; cursor: pointer; }
         .btn-delete { padding: 10px 20px; background: #EF4444; color: white; border: none; border-radius: 6px; cursor: pointer; }
 
-        /* 글 보기 모달 스타일 */
+        /* 글 보기 및 작성 미리보기 스타일 */
         .view-meta { font-size: 13px; color: var(--text-sub); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
         .view-body { min-height: 150px; line-height: 1.6; margin-bottom: 20px; white-space: pre-wrap; }
         .file-preview-area { margin-top: 20px; padding: 15px; background: #F8FAFC; border-radius: 8px; }
         .file-preview-area img { max-width: 100%; border-radius: 4px; }
         .file-preview-area a { color: var(--primary-color); text-decoration: none; font-weight: 500; display: inline-block; margin-top: 10px;}
+        
+        /* 작성/수정 모달 내부 미리보기 박스 */
+        .write-preview-container {
+            margin-top: 10px;
+            padding: 10px;
+            background: #F8FAFC;
+            border: 1px dashed #CBD5E1;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .write-preview-container img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 6px;
+            object-fit: contain;
+        }
     </style>
 </head>
 <body>
@@ -182,6 +198,8 @@
         <div class="form-group">
             <label style="font-size: 13px; color: var(--text-sub); display: block; margin-bottom: 5px;">첨부파일 <span id="currentFileName" style="color:var(--primary-color); margin-left: 5px; font-weight: 500;"></span></label>
             <input type="file" id="writeFile" class="form-control" onchange="handleFileChange()">
+            <!-- 파일 선택 시 실시간 미리보기 영역 -->
+            <div id="writePreviewArea" class="write-preview-container" style="display: none;"></div>
         </div>
         <div class="modal-actions">
             <button class="btn-cancel" onclick="closeModals()">취소</button>
@@ -371,6 +389,11 @@
         document.getElementById('writeContent').value = '';
         document.getElementById('writeFile').value = '';
         document.getElementById('currentFileName').innerText = '';
+        
+        const previewArea = document.getElementById('writePreviewArea');
+        previewArea.innerHTML = '';
+        previewArea.style.display = 'none';
+
         document.getElementById('btnSubmit').innerText = '등록하기';
         document.getElementById('writeModal').style.display = 'flex';
     }
@@ -390,16 +413,31 @@
         document.getElementById('writeContent').value = currentViewItem.content;
         document.getElementById('writeFile').value = '';
         document.getElementById('currentFileName').innerText = currentViewItem.fileName ? `(기존 첨부파일: ${currentViewItem.fileName})` : '';
-        document.getElementById('btnSubmit').innerText = '수정하기';
         
+        // 수정 시 기존 파일 미리보기 표시
+        const previewArea = document.getElementById('writePreviewArea');
+        if (currentViewItem.fileUrl) {
+            previewArea.style.display = 'block';
+            if (currentViewItem.fileType && currentViewItem.fileType.startsWith('image/')) {
+                previewArea.innerHTML = `<p style="font-size:12px; color:#64748B; margin-bottom:5px;">기존 이미지 미리보기</p><img src="${currentViewItem.fileUrl}" alt="기존 이미지">`;
+            } else {
+                previewArea.innerHTML = `<div style="font-size:13px; color:#64748B;"><i class="fa-solid fa-file"></i> 기존 파일: ${currentViewItem.fileName || '첨부파일'}</div>`;
+            }
+        } else {
+            previewArea.innerHTML = '';
+            previewArea.style.display = 'none';
+        }
+
+        document.getElementById('btnSubmit').innerText = '수정하기';
         document.getElementById('viewModal').style.display = 'none';
         document.getElementById('writeModal').style.display = 'flex';
     }
 
-    // 파일 선택 시 용량 체크 (10MB 제한)
+    // 파일 선택 시 용량 체크 및 실시간 미리보기 기능
     window.handleFileChange = function() {
         const fileInput = document.getElementById('writeFile');
         const fileNameDisplay = document.getElementById('currentFileName');
+        const previewArea = document.getElementById('writePreviewArea');
         
         if (fileInput.files.length > 0) {
             const file = fileInput.files[0];
@@ -409,6 +447,8 @@
                 alert("파일 크기는 10MB를 초과할 수 없습니다.");
                 fileInput.value = ""; 
                 fileNameDisplay.innerText = "";
+                previewArea.innerHTML = "";
+                previewArea.style.display = "none";
                 return;
             }
             
@@ -420,8 +460,23 @@
             }
             
             fileNameDisplay.innerText = `[${file.name} / ${sizeStr}]`;
+
+            // 미리보기 생성 로직
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewArea.innerHTML = `<img src="${e.target.result}" alt="미리보기 이미지">`;
+                    previewArea.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                previewArea.innerHTML = `<div style="font-size:13px; color:#64748B;"><i class="fa-solid fa-file"></i> ${file.name}</div>`;
+                previewArea.style.display = 'block';
+            }
         } else {
             fileNameDisplay.innerText = "";
+            previewArea.innerHTML = "";
+            previewArea.style.display = "none";
         }
     }
 
@@ -485,13 +540,13 @@
         document.getElementById('viewModal').style.display = 'flex';
     }
 
-    // ★ 클라우디너리 업로드 함수 ★
+    // 클라우디너리 업로드 함수
     async function uploadToCloudinary(file) {
-        const url = 'https://api.cloudinary.com/v1_1/dswystlen/auto/upload'; // 모든 파일 형식 허용(auto)
+        const url = 'https://api.cloudinary.com/v1_1/dswystlen/auto/upload';
         
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('upload_preset', 'hssc2site'); // 설정하신 프리셋
+        formData.append('upload_preset', 'hssc2site');
 
         try {
             const response = await fetch(url, {
@@ -505,7 +560,7 @@
                 throw new Error(data.error?.message || '업로드 실패');
             }
             
-            return data.secure_url; // 성공 시 URL 반환
+            return data.secure_url;
         } catch (error) {
             console.error("클라우디너리 업로드 에러:", error);
             throw error;
@@ -537,10 +592,9 @@
             let fileType = currentEditId ? currentViewItem.fileType : null;
             let fileName = currentEditId ? currentViewItem.fileName : null;
 
-            // 파일이 선택되었을 때만 업로드 실행
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
-                fileUrl = await uploadToCloudinary(file); // 새 함수 호출
+                fileUrl = await uploadToCloudinary(file);
                 fileType = file.type;
                 fileName = file.name;
             }
