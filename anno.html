@@ -180,8 +180,8 @@
             <textarea id="writeContent" class="form-control" placeholder="내용을 입력하세요"></textarea>
         </div>
         <div class="form-group">
-            <label style="font-size: 13px; color: var(--text-sub); display: block; margin-bottom: 5px;">첨부파일 <span id="currentFileName" style="color:var(--primary-color);"></span></label>
-            <input type="file" id="writeFile" class="form-control">
+            <label style="font-size: 13px; color: var(--text-sub); display: block; margin-bottom: 5px;">첨부파일 <span id="currentFileName" style="color:var(--primary-color); margin-left: 5px; font-weight: 500;"></span></label>
+            <input type="file" id="writeFile" class="form-control" onchange="handleFileChange()">
         </div>
         <div class="modal-actions">
             <button class="btn-cancel" onclick="closeModals()">취소</button>
@@ -227,7 +227,7 @@
 
     // Cloudinary 설정 정보
     const CLOUDINARY_CLOUD_NAME = "dewystlen"; 
-    const CLOUDINARY_UPLOAD_PRESET = "hssc2.0"; 
+    const CLOUDINARY_UPLOAD_PRESET = "hssc2site"; 
     
     // 상태 변수
     let allAnnos = []; // 전체 데이터
@@ -393,11 +393,43 @@
         document.getElementById('writeTitle').value = currentViewItem.title;
         document.getElementById('writeContent').value = currentViewItem.content;
         document.getElementById('writeFile').value = '';
-        document.getElementById('currentFileName').innerText = currentViewItem.fileName ? `기존 파일: ${currentViewItem.fileName}` : '기존 첨부파일 없음';
+        document.getElementById('currentFileName').innerText = currentViewItem.fileName ? `(기존 첨부파일: ${currentViewItem.fileName})` : '';
         document.getElementById('btnSubmit').innerText = '수정하기';
         
         document.getElementById('viewModal').style.display = 'none';
         document.getElementById('writeModal').style.display = 'flex';
+    }
+
+    // 파일 선택 시 용량 체크 및 표시 함수 (5MB 제한)
+    window.handleFileChange = function() {
+        const fileInput = document.getElementById('writeFile');
+        const fileNameDisplay = document.getElementById('currentFileName');
+        
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const maxSize = 5 * 1024 * 1024; // 5MB (바이트 단위)
+            
+            // 5MB 초과 시 차단
+            if (file.size > maxSize) {
+                alert("파일 크기는 5MB를 초과할 수 없습니다.");
+                fileInput.value = ""; // 입력된 파일 초기화
+                fileNameDisplay.innerText = "";
+                return;
+            }
+            
+            // 용량 계산 (KB 또는 MB 단위로 변환)
+            let sizeStr = "";
+            if (file.size < 1024 * 1024) {
+                sizeStr = (file.size / 1024).toFixed(1) + " KB";
+            } else {
+                sizeStr = (file.size / (1024 * 1024)).toFixed(1) + " MB";
+            }
+            
+            fileNameDisplay.innerText = `[${file.name} / ${sizeStr}]`;
+        } else {
+            // 파일 선택 취소 시
+            fileNameDisplay.innerText = "";
+        }
     }
 
     // 삭제 기능 (권한 검증 포함)
@@ -468,15 +500,16 @@
             throw new Error("Cloudinary info missing");
         }
 
-        // ★ 해결 포인트: 파일 종류에 따라 업로드 경로(resourceType)를 정확히 지정합니다.
-        let resourceType = 'raw'; // 기본값 (PDF, HWP, ZIP 등 문서/압축파일)
-        if (file.type.startsWith('image/')) {
-            resourceType = 'image'; // 이미지 파일
-        } else if (file.type.startsWith('video/')) {
-            resourceType = 'video'; // 동영상 파일
+        // 파일 종류에 따라 업로드 경로(resourceType)를 정확히 지정 (Unknown API 방지)
+        let resourceType = 'raw'; // 기본값 (PDF, HWP, ZIP 등)
+        if (file.type) {
+            if (file.type.startsWith('image/')) {
+                resourceType = 'image';
+            } else if (file.type.startsWith('video/')) {
+                resourceType = 'video';
+            }
         }
 
-        // auto 대신 위에서 분류한 resourceType을 주소에 넣습니다.
         const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
         
         const formData = new FormData();
@@ -492,6 +525,7 @@
         
         if (!response.ok) {
             console.error("Cloudinary Upload Error Details:", result);
+            alert("파일 업로드 실패: Cloudinary 설정(Cloud Name, Preset)을 다시 확인해주세요.");
             throw new Error(result.error?.message || "파일 업로드 실패");
         }
         
@@ -561,7 +595,10 @@
 
         } catch (error) {
             console.error("글 저장 에러:", error);
-            alert("저장 중 오류가 발생했습니다: " + error.message);
+            // 업로드 에러 메시지를 좀 더 명확하게 표시하도록 수정했습니다.
+            if(error.message !== "Cloudinary info missing" && error.message.indexOf("업로드 실패") === -1) {
+                 alert("저장 중 오류가 발생했습니다: " + error.message);
+            }
         } finally {
             btnSubmit.innerText = currentEditId ? "수정하기" : "등록하기";
             btnSubmit.disabled = false;
