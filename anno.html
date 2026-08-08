@@ -230,10 +230,28 @@
 
     // ImageKit 설정 정보 (로컬 서버 대신 Render 서버 주소로 변경됨)
     const imagekit = new ImageKit({
-        publicKey: "public_Rbir3GKcr4bIFefQYWpPO1HicDM=",
-        urlEndpoint: "https://ik.imagekit.io/bmjcjmfta",
-        authenticationEndpoint: "https://imagekit-auth-server-hssc2-0-site.onrender.com/api/imagekit-auth"
-    });
+    publicKey: "public_Rbir3GKcr4bIFefQYWpPO1HicDM=",
+    urlEndpoint: "https://ik.imagekit.io/bmjcjmfta",
+    authenticator: async function() {
+        try {
+            // Render 서버에 직접 인증키를 요청합니다.
+            const response = await fetch("https://imagekit-auth-server-hssc2-0-site.onrender.com/api/imagekit-auth");
+            
+            if (!response.ok) {
+                throw new Error(`서버 요청 실패: ${response.status}`);
+            }
+            
+            // 받아온 인증키 데이터를 ImageKit에게 전달합니다.
+            const data = await response.json();
+            const { signature, expire, token } = data;
+            return { signature, expire, token };
+            
+        } catch (error) {
+            console.error("인증 실패:", error);
+            throw new Error(`인증 요청 에러: ${error.message}`);
+        }
+    }
+});
     
     // 상태 변수
     let allAnnos = []; // 전체 데이터
