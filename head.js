@@ -193,7 +193,7 @@ const headerHTML = `
         position: fixed; top: 0; right: -280px; width: 280px; height: 100%;
         background-color: #FFFFFF; box-shadow: -5px 0 25px rgba(0,0,0,0.03);
         z-index: 2000; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        padding: 40px 30px; display: flex; flex-direction: column; gap: 30px; overflow-y: auto;
+        padding: 30px 25px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto;
     }
     .sidebar.active { right: 0; }
     .sidebar-close { align-self: flex-end; background: none; border: none; font-size: 24px; cursor: pointer; color: #666666; }
@@ -208,7 +208,8 @@ const headerHTML = `
     .mobile-nav-item.open .mobile-dropdown-content { display: flex; }
     .mobile-nav-item.open .mobile-nav-link i { transform: rotate(180deg); }
 
-    .sidebar-auth { margin-top: auto; padding-top: 20px; border-top: 1px solid #F0F0F0; }
+    /* 상단 배치용 모바일 인증/프로필 영역 스타일 */
+    .sidebar-auth { padding-bottom: 20px; border-bottom: 1px solid #F0F0F0; }
     .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.15); z-index: 1999; display: none; }
     .sidebar-overlay.active { display: block; }
 
@@ -297,6 +298,11 @@ const headerHTML = `
 <aside class="sidebar" id="sidebarMenu">
     <button class="sidebar-close" id="sidebarCloseBtn"><i class="fa-solid fa-xmark"></i></button>
     
+    <!-- 모바일 최상단: 로그인 버튼 / 사용자 정보 표시 영역 -->
+    <div class="sidebar-auth" id="authContainerMobile">
+        <button class="auth-btn" style="width: 100%;" onclick="location.href='login.html'">로그인</button>
+    </div>
+
     <nav class="sidebar-menu">
         <div class="mobile-nav-item">
             <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">알림 <i class="fa-solid fa-chevron-down"></i></div>
@@ -356,10 +362,6 @@ const headerHTML = `
             </div>
         </div>
     </nav>
-    
-    <div class="sidebar-auth" id="authContainerMobile">
-        <button class="auth-btn" style="width: 100%;" onclick="location.href='login.html'">로그인</button>
-    </div>
 </aside>
 `;
 
@@ -432,10 +434,10 @@ function checkLoginState() {
             `;
         }
         
-        // 모바일: 이름 클릭 시 setaco.html 로 이동
+        // 모바일: 이름 클릭 시 setaco.html 로 이동 (사이드바 최상단 출력)
         if (mobileContainer) {
             mobileContainer.innerHTML = `
-                <div style="display:flex; flex-direction:column; gap:10px; align-items:flex-start;">
+                <div style="display:flex; flex-direction:column; gap:10px; align-items:flex-start; width:100%;">
                     <span style="font-size:12px; background:#EEF2F7; padding:3px 8px; border-radius:12px; color:#475569;">${finalRoleText}</span>
                     <a href="setaco.html" class="profile-link" style="font-size:16px;"><i class="fa-solid fa-user"></i> <b>${userSession.name || userSession.id}</b>님</a>
                     ${adminButtonMobile}
