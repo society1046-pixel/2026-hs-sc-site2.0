@@ -233,7 +233,7 @@ const headerHTML = `
                 <a href="#">알림 <i class="fa-solid fa-chevron-down"></i></a>
                 <div class="dropdown-content">
                     <a href="anno.html">공지사항</a>
-                    <a href="frinfo.html" onclick="closeSidebar()">자유게시판</a>
+                    <a href="frinfo.html">자유게시판</a>
                 </div>
             </div>
             <div class="nav-item">
