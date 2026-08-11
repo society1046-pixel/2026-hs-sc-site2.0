@@ -332,5 +332,37 @@
         </form>
     </div>
 
+    <!-- 실시간 비밀번호 확인 스크립트 추가 -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const signupPw = document.getElementById('signupPw');
+            const signupPwConfirm = document.getElementById('signupPwConfirm');
+            const pwMatchMsg = document.getElementById('pwMatchMsg');
+
+            function checkPasswordMatch() {
+                // 두 입력창 중 하나라도 비어있으면 메시지 숨김
+                if (!signupPw.value || !signupPwConfirm.value) {
+                    pwMatchMsg.style.display = 'none';
+                    return;
+                }
+                
+                pwMatchMsg.style.display = 'block'; // 메시지 표시
+                
+                if (signupPw.value === signupPwConfirm.value) {
+                    pwMatchMsg.textContent = '비밀번호가 일치합니다.';
+                    pwMatchMsg.style.color = '#28a745'; // 초록색
+                } else {
+                    pwMatchMsg.textContent = '비밀번호가 일치하지 않습니다.';
+                    pwMatchMsg.style.color = '#dc3545'; // 빨간색
+                }
+            }
+
+            // 입력할 때마다 이벤트 발생
+            if (signupPw && signupPwConfirm) {
+                signupPw.addEventListener('input', checkPasswordMatch);
+                signupPwConfirm.addEventListener('input', checkPasswordMatch);
+            }
+        });
+    </script>
 </body>
 </html>
