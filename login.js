@@ -61,9 +61,18 @@ function toggleRoleFields() {
 
     if (role === 'student') {
         isPendingRole = false;
-    } else if (role === 'student_council') {
-        if(departmentField) departmentField.style.display = 'flex';
-        if(signupDept) signupDept.setAttribute('required', 'required');
+    } else if (role === 'student_council' || role === 'class_president' || role === 'vice_president') {
+        // 학생회, 반장, 부반장 모두 인증 코드 필드 노출
+        if (role === 'student_council') {
+            if(departmentField) departmentField.style.display = 'flex';
+            if(signupDept) signupDept.setAttribute('required', 'required');
+        }
+        
+        // 인증 코드 필드를 활성화하여 코드를 받도록 처리
+        if(teacherCodeField) teacherCodeField.style.display = 'flex';
+        if(teacherCode) teacherCode.setAttribute('required', 'required');
+        isPendingRole = false; // 코드로 인증하므로 즉시 가입 완료 상태로 처리됨
+        
     } else if (role === 'teacher') {
         // 선생님 선택 시 학적 정보 숨김 및 필수 해제
         if(studentInfoField) studentInfoField.style.display = 'none';
@@ -202,16 +211,30 @@ async function handleSignup(event) {
     const teacherMethodElement = document.querySelector('input[name="teacherMethod"]:checked');
     const teacherMethod = teacherMethodElement ? teacherMethodElement.value : 'code';
 
+    // 역할에 따른 코드 검증 추가
     if (role === 'teacher' && teacherMethod === 'code') {
         const code = document.getElementById('teacherCode')?.value;
         if (code !== '260202') {
             alert("선생님 인증 코드가 올바르지 않습니다.");
             return;
         }
+    } else if (role === 'student_council') {
+        const code = document.getElementById('teacherCode')?.value;
+        if (code !== '26-1958') {
+            alert("학생회 인증 코드가 올바르지 않습니다.");
+            return;
+        }
+    } else if (role === 'class_president' || role === 'vice_president') {
+        const code = document.getElementById('teacherCode')?.value;
+        if (code !== '26-5039') {
+            alert("반장/부반장 인증 코드가 올바르지 않습니다.");
+            return;
+        }
     }
 
     let accountStatus = "pending";
-    if (role === 'student' || (role === 'teacher' && teacherMethod === 'code')) {
+    // 코드 인증을 거친 학생회, 반장, 부반장 역시 즉시 승인 처리
+    if (role === 'student' || (role === 'teacher' && teacherMethod === 'code') || role === 'student_council' || role === 'class_president' || role === 'vice_president') {
         accountStatus = "approved";
     }
 
