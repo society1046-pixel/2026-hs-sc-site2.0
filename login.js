@@ -24,7 +24,7 @@ function switchTab(type) {
     document.getElementById('signupForm').classList.toggle('active', type === 'signup');
 }
 
-// 2. 역할별 폼 토글
+// 2. 역할별 폼 토글 (HTML과 ID 매칭 완료)
 function toggleRoleFields() {
     const roleSelect = document.getElementById('signupRole');
     if (!roleSelect) return;
@@ -34,16 +34,16 @@ function toggleRoleFields() {
     
     const studentInfoField = document.getElementById('studentInfoField');
     const departmentField = document.getElementById('departmentField');
-    const teacherOptionsField = document.getElementById('teacherOptionsField');
-    const teacherCodeField = document.getElementById('teacherCodeField');
+    const authOptionsField = document.getElementById('authOptionsField'); // 수정됨
+    const authCodeField = document.getElementById('authCodeField'); // 수정됨
     
     const signupGrade = document.getElementById('signupGrade');
     const signupClass = document.getElementById('signupClass');
     const signupNumber = document.getElementById('signupNumber');
     const signupDept = document.getElementById('signupDept');
-    const teacherCode = document.getElementById('teacherCode');
-    const teacherMethodElement = document.querySelector('input[name="teacherMethod"]:checked');
-    const teacherMethod = teacherMethodElement ? teacherMethodElement.value : 'code';
+    const authCode = document.getElementById('authCode'); // 수정됨
+    const authMethodElement = document.querySelector('input[name="authMethod"]:checked'); // 수정됨
+    const authMethod = authMethodElement ? authMethodElement.value : 'code';
 
     // 학적(학년/반/번호) 기본 노출 및 필수 활성화
     if(studentInfoField) studentInfoField.style.display = 'flex';
@@ -52,10 +52,10 @@ function toggleRoleFields() {
     if(signupNumber) signupNumber.setAttribute('required', 'required');
 
     if(departmentField) departmentField.style.display = 'none';
-    if(teacherOptionsField) teacherOptionsField.style.display = 'none';
-    if(teacherCodeField) teacherCodeField.style.display = 'none';
+    if(authOptionsField) authOptionsField.style.display = 'none';
+    if(authCodeField) authCodeField.style.display = 'none';
     if(signupDept) signupDept.removeAttribute('required');
-    if(teacherCode) teacherCode.removeAttribute('required');
+    if(authCode) authCode.removeAttribute('required');
 
     let isPendingRole = true;
 
@@ -68,10 +68,15 @@ function toggleRoleFields() {
             if(signupDept) signupDept.setAttribute('required', 'required');
         }
         
-        // 인증 코드 필드를 활성화하여 코드를 받도록 처리
-        if(teacherCodeField) teacherCodeField.style.display = 'flex';
-        if(teacherCode) teacherCode.setAttribute('required', 'required');
-        isPendingRole = false; // 코드로 인증하므로 즉시 가입 완료 상태로 처리됨
+        // 인증 방식 옵션도 보여줌
+        if(authOptionsField) authOptionsField.style.display = 'flex';
+        
+        // 코드로 가입일 경우 인증 코드 필드 활성화
+        if (authMethod === 'code') {
+            if(authCodeField) authCodeField.style.display = 'flex';
+            if(authCode) authCode.setAttribute('required', 'required');
+            isPendingRole = false; // 코드로 인증하므로 즉시 가입 완료 상태로 처리됨
+        }
         
     } else if (role === 'teacher') {
         // 선생님 선택 시 학적 정보 숨김 및 필수 해제
@@ -80,10 +85,10 @@ function toggleRoleFields() {
         if(signupClass) signupClass.removeAttribute('required');
         if(signupNumber) signupNumber.removeAttribute('required');
 
-        if(teacherOptionsField) teacherOptionsField.style.display = 'flex';
-        if (teacherMethod === 'code') {
-            if(teacherCodeField) teacherCodeField.style.display = 'flex';
-            if(teacherCode) teacherCode.setAttribute('required', 'required');
+        if(authOptionsField) authOptionsField.style.display = 'flex';
+        if (authMethod === 'code') {
+            if(authCodeField) authCodeField.style.display = 'flex';
+            if(authCode) authCode.setAttribute('required', 'required');
             isPendingRole = false;
         }
     }
@@ -99,7 +104,7 @@ function toggleRoleFields() {
     }
 }
 
-// 전화번호 자동 하이픈 (모든 전화번호 입력창 적용)
+// 전화번호 자동 하이픈
 document.addEventListener('DOMContentLoaded', () => {
     const phoneInputs = document.querySelectorAll('.auto-hyphen');
     phoneInputs.forEach(input => {
@@ -185,7 +190,7 @@ async function handleLogin(event) {
     }
 }
 
-// 4. 회원가입 핸들러
+// 4. 회원가입 핸들러 (HTML과 ID 매칭 완료)
 async function handleSignup(event) {
     event.preventDefault();
 
@@ -200,7 +205,6 @@ async function handleSignup(event) {
     const phone = document.getElementById('signupPhone')?.value;
     
     let studentNumber = "";
-    // 선생님이 아닌 경우에만 학번 조합
     if (role !== 'teacher') {
         const grade = document.getElementById('signupGrade')?.value || '';
         const stuClass = (document.getElementById('signupClass')?.value || '').padStart(2, '0');
@@ -208,33 +212,27 @@ async function handleSignup(event) {
         studentNumber = `${grade}${stuClass}${stuNum}`;
     }
 
-    const teacherMethodElement = document.querySelector('input[name="teacherMethod"]:checked');
-    const teacherMethod = teacherMethodElement ? teacherMethodElement.value : 'code';
+    const authMethodElement = document.querySelector('input[name="authMethod"]:checked');
+    const authMethod = authMethodElement ? authMethodElement.value : 'code';
 
-    // 역할에 따른 코드 검증 추가
-    if (role === 'teacher' && teacherMethod === 'code') {
-        const code = document.getElementById('teacherCode')?.value;
-        if (code !== '260202') {
+    // 역할에 따른 코드 검증 추가 (authCode로 통일)
+    if (authMethod === 'code') {
+        const code = document.getElementById('authCode')?.value;
+        
+        if (role === 'teacher' && code !== '260202') {
             alert("선생님 인증 코드가 올바르지 않습니다.");
             return;
-        }
-    } else if (role === 'student_council') {
-        const code = document.getElementById('teacherCode')?.value;
-        if (code !== '26-1958') {
+        } else if (role === 'student_council' && code !== '26-1958') {
             alert("학생회 인증 코드가 올바르지 않습니다.");
             return;
-        }
-    } else if (role === 'class_president' || role === 'vice_president') {
-        const code = document.getElementById('teacherCode')?.value;
-        if (code !== '26-5039') {
+        } else if ((role === 'class_president' || role === 'vice_president') && code !== '26-5039') {
             alert("반장/부반장 인증 코드가 올바르지 않습니다.");
             return;
         }
     }
 
     let accountStatus = "pending";
-    // 코드 인증을 거친 학생회, 반장, 부반장 역시 즉시 승인 처리
-    if (role === 'student' || (role === 'teacher' && teacherMethod === 'code') || role === 'student_council' || role === 'class_president' || role === 'vice_president') {
+    if (role === 'student' || authMethod === 'code') {
         accountStatus = "approved";
     }
 
@@ -299,7 +297,6 @@ function closeModal(modalId) {
     document.getElementById('modalOverlay').style.display = 'none';
     document.getElementById(modalId).style.display = 'none';
     
-    // 모달 내 폼 초기화 및 상태 복구
     if (modalId === 'modalFindId') {
         document.getElementById('formFindId').reset();
         document.getElementById('findIdResult').innerHTML = '';
@@ -346,7 +343,7 @@ async function handleFindId(event) {
     }
 }
 
-// 7. 비밀번호 재설정 - 1단계: 정보 확인
+// 7. 비밀번호 재설정 - 1단계
 async function handleVerifyForPwReset(event) {
     event.preventDefault();
     const id = document.getElementById('resetPwId').value.trim();
@@ -360,7 +357,6 @@ async function handleVerifyForPwReset(event) {
         if (userSnap.exists()) {
             const data = userSnap.data();
             if (data.name === name && data.phone === phone) {
-                // 일치 시 업데이트 창으로 전환
                 window.tempResetId = id;
                 document.getElementById('verifyPwSection').style.display = 'none';
                 document.getElementById('updatePwSection').style.display = 'block';
@@ -376,7 +372,7 @@ async function handleVerifyForPwReset(event) {
     }
 }
 
-// 8. 비밀번호 재설정 - 2단계: 새 비밀번호 변경
+// 8. 비밀번호 재설정 - 2단계
 async function handleUpdatePw(event) {
     event.preventDefault();
     const newPw = document.getElementById('newPw').value;
