@@ -220,25 +220,27 @@
                     </div>
                 </div>
 
-                <div class="conditional-field" id="teacherOptionsField">
-                    <label>선생님 가입 방식</label>
+                <!-- ================== 수정/추가된 부분: 선생님 외에 간부(학생회/반장/부반장)도 공통 사용 ================== -->
+                <div class="conditional-field" id="authOptionsField">
+                    <label>가입 인증 방식</label>
                     <div class="radio-group">
                         <label>
-                            <input type="radio" name="teacherMethod" value="code" checked onchange="toggleRoleFields()"> 코드로 가입
+                            <input type="radio" name="authMethod" value="code" checked onchange="toggleRoleFields()"> 코드로 가입
                         </label>
                         <label>
-                            <input type="radio" name="teacherMethod" value="request" onchange="toggleRoleFields()"> 가입 요청
+                            <input type="radio" name="authMethod" value="request" onchange="toggleRoleFields()"> 가입 요청
                         </label>
                     </div>
                 </div>
 
-                <div class="conditional-field" id="teacherCodeField">
-                    <label for="teacherCode">선생님 인증 코드</label>
+                <div class="conditional-field" id="authCodeField">
+                    <label for="authCode">인증 코드</label>
                     <div class="input-wrapper" style="margin-top: 4px;">
                         <i class="fa-solid fa-key"></i>
-                        <input type="password" id="teacherCode" placeholder="인증 코드">
+                        <input type="password" id="authCode" placeholder="인증 코드">
                     </div>
                 </div>
+                <!-- ==================================================================================================== -->
 
                 <div class="input-group">
                     <label for="signupId">아이디</label>
@@ -255,7 +257,6 @@
                     </div>
                 </div>
                 
-                <!-- ================== 추가된 부분 (비밀번호 일치 확인) ================== -->
                 <div class="input-group">
                     <label for="signupPwConfirm">비밀번호 확인</label>
                     <div class="input-wrapper">
@@ -264,7 +265,6 @@
                     </div>
                     <span id="pwMatchMsg" style="font-size: 12px; display: none; margin-top: 2px;"></span>
                 </div>
-                <!-- ====================================================================== -->
 
                 <div class="input-group">
                     <label for="signupPhone">전화번호</label>
@@ -345,10 +345,7 @@
         </form>
 
         <form id="updatePwSection" class="auth-form" onsubmit="handleUpdatePw(event)" style="display: none;">
-            <!-- ================== 추가된 부분 (인증된 유저 식별용 hidden 필드) ================== -->
             <input type="hidden" id="verifiedResetId">
-            <!-- ====================================================================== -->
-            
             <p style="font-size: 13px; color: #7BA4DB; margin-bottom: 5px; font-weight: 500;">본인 확인이 완료되었습니다. 새 비밀번호를 입력해 주세요.</p>
             <div class="input-group">
                 <label for="newPw">새 비밀번호</label>
@@ -368,9 +365,6 @@
         </form>
     </div>
 
-    <!-- ================== 추가된 부분 (UI 작동 스크립트) ================== -->
-    <!-- (이유: 모듈 방식(type="module")로 자바스크립트를 분리할 경우, HTML의 인라인(onclick 등) 함수가 
-         전역으로 노출되지 않아 버튼을 눌러도 반응하지 않는 에러를 방지합니다.) -->
     <script>
         // 1. 탭 전환 기능
         window.switchTab = function(tabName) {
@@ -394,48 +388,50 @@
             }
         };
 
-        // 2. 가입 유형에 따른 조건부 필드 표시
+        // 2. 가입 유형에 따른 조건부 필드 표시 (수정됨)
         window.toggleRoleFields = function() {
             const role = document.getElementById('signupRole').value;
             
             const deptField = document.getElementById('departmentField');
-            const teacherOptionsField = document.getElementById('teacherOptionsField');
-            const teacherCodeField = document.getElementById('teacherCodeField');
+            const authOptionsField = document.getElementById('authOptionsField');
+            const authCodeField = document.getElementById('authCodeField');
             const studentInfoField = document.getElementById('studentInfoField');
 
             // 기본 숨김 처리 및 필수값(required) 해제
             deptField.style.display = 'none';
             document.getElementById('signupDept').required = false;
             
-            teacherOptionsField.style.display = 'none';
-            teacherCodeField.style.display = 'none';
-            document.getElementById('teacherCode').required = false;
+            authOptionsField.style.display = 'none';
+            authCodeField.style.display = 'none';
+            document.getElementById('authCode').required = false;
             
             studentInfoField.style.display = 'none';
             document.getElementById('signupGrade').required = false;
             document.getElementById('signupClass').required = false;
             document.getElementById('signupNumber').required = false;
 
-            if (role === 'student_council') {
+            // 일반 학생 및 간부(학생회, 반장, 부반장)는 교내 정보 입력 필요
+            if (role === 'student' || role === 'student_council' || role === 'class_president' || role === 'vice_president') {
                 studentInfoField.style.display = 'flex';
                 document.getElementById('signupGrade').required = true;
                 document.getElementById('signupClass').required = true;
                 document.getElementById('signupNumber').required = true;
-                
+            }
+
+            // 학생회 부서 선택 (학생회만)
+            if (role === 'student_council') {
                 deptField.style.display = 'flex';
                 document.getElementById('signupDept').required = true;
-            } else if (role === 'teacher') {
-                teacherOptionsField.style.display = 'flex';
-                const method = document.querySelector('input[name="teacherMethod"]:checked').value;
+            } 
+            
+            // 선생님, 학생회, 반장, 부반장은 '가입 방식 선택(코드/요청)' 적용
+            if (role === 'teacher' || role === 'student_council' || role === 'class_president' || role === 'vice_president') {
+                authOptionsField.style.display = 'flex';
+                const method = document.querySelector('input[name="authMethod"]:checked').value;
                 if (method === 'code') {
-                    teacherCodeField.style.display = 'flex';
-                    document.getElementById('teacherCode').required = true;
+                    authCodeField.style.display = 'flex';
+                    document.getElementById('authCode').required = true;
                 }
-            } else if (role === 'student' || role === 'class_president' || role === 'vice_president') {
-                studentInfoField.style.display = 'flex';
-                document.getElementById('signupGrade').required = true;
-                document.getElementById('signupClass').required = true;
-                document.getElementById('signupNumber').required = true;
             }
         };
 
@@ -500,6 +496,5 @@
             signupPwConfirm.addEventListener('input', checkPwMatch);
         }
     </script>
-    <!-- ====================================================================== -->
 </body>
 </html>
