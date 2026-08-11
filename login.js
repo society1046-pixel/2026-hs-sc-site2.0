@@ -24,7 +24,7 @@ function switchTab(type) {
     document.getElementById('signupForm').classList.toggle('active', type === 'signup');
 }
 
-// 2. 역할별 폼 토글 (HTML과 ID 매칭 완료)
+// 2. 역할별 폼 토글
 function toggleRoleFields() {
     const roleSelect = document.getElementById('signupRole');
     if (!roleSelect) return;
@@ -34,18 +34,17 @@ function toggleRoleFields() {
     
     const studentInfoField = document.getElementById('studentInfoField');
     const departmentField = document.getElementById('departmentField');
-    const authOptionsField = document.getElementById('authOptionsField'); // 수정됨
-    const authCodeField = document.getElementById('authCodeField'); // 수정됨
+    const authOptionsField = document.getElementById('authOptionsField');
+    const authCodeField = document.getElementById('authCodeField');
     
     const signupGrade = document.getElementById('signupGrade');
     const signupClass = document.getElementById('signupClass');
     const signupNumber = document.getElementById('signupNumber');
     const signupDept = document.getElementById('signupDept');
-    const authCode = document.getElementById('authCode'); // 수정됨
-    const authMethodElement = document.querySelector('input[name="authMethod"]:checked'); // 수정됨
+    const authCode = document.getElementById('authCode');
+    const authMethodElement = document.querySelector('input[name="authMethod"]:checked');
     const authMethod = authMethodElement ? authMethodElement.value : 'code';
 
-    // 학적(학년/반/번호) 기본 노출 및 필수 활성화
     if(studentInfoField) studentInfoField.style.display = 'flex';
     if(signupGrade) signupGrade.setAttribute('required', 'required');
     if(signupClass) signupClass.setAttribute('required', 'required');
@@ -62,24 +61,20 @@ function toggleRoleFields() {
     if (role === 'student') {
         isPendingRole = false;
     } else if (role === 'student_council' || role === 'class_president' || role === 'vice_president') {
-        // 학생회, 반장, 부반장 모두 인증 코드 필드 노출
         if (role === 'student_council') {
             if(departmentField) departmentField.style.display = 'flex';
             if(signupDept) signupDept.setAttribute('required', 'required');
         }
         
-        // 인증 방식 옵션도 보여줌
         if(authOptionsField) authOptionsField.style.display = 'flex';
         
-        // 코드로 가입일 경우 인증 코드 필드 활성화
         if (authMethod === 'code') {
             if(authCodeField) authCodeField.style.display = 'flex';
             if(authCode) authCode.setAttribute('required', 'required');
-            isPendingRole = false; // 코드로 인증하므로 즉시 가입 완료 상태로 처리됨
+            isPendingRole = false;
         }
         
     } else if (role === 'teacher') {
-        // 선생님 선택 시 학적 정보 숨김 및 필수 해제
         if(studentInfoField) studentInfoField.style.display = 'none';
         if(signupGrade) signupGrade.removeAttribute('required');
         if(signupClass) signupClass.removeAttribute('required');
@@ -104,7 +99,7 @@ function toggleRoleFields() {
     }
 }
 
-// 전화번호 자동 하이픈
+// 이벤트 및 비밀번호 실시간 체크 등록
 document.addEventListener('DOMContentLoaded', () => {
     const phoneInputs = document.querySelectorAll('.auto-hyphen');
     phoneInputs.forEach(input => {
@@ -119,6 +114,32 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    const signupPw = document.getElementById('signupPw');
+    const signupPwConfirm = document.getElementById('signupPwConfirm');
+    const pwMatchMsg = document.getElementById('pwMatchMsg');
+
+    function checkPwMatch() {
+        if(!signupPwConfirm || !signupPwConfirm.value) {
+            if(pwMatchMsg) pwMatchMsg.style.display = 'none';
+            return;
+        }
+        if(pwMatchMsg) {
+            pwMatchMsg.style.display = 'block';
+            if(signupPw.value === signupPwConfirm.value) {
+                pwMatchMsg.textContent = '비밀번호가 일치합니다.';
+                pwMatchMsg.style.color = '#28a745';
+            } else {
+                pwMatchMsg.textContent = '비밀번호가 일치하지 않습니다.';
+                pwMatchMsg.style.color = '#dc3545';
+            }
+        }
+    }
+
+    if(signupPw && signupPwConfirm) {
+        signupPw.addEventListener('input', checkPwMatch);
+        signupPwConfirm.addEventListener('input', checkPwMatch);
+    }
 });
 
 // 3. 로그인 핸들러
@@ -190,7 +211,7 @@ async function handleLogin(event) {
     }
 }
 
-// 4. 회원가입 핸들러 (HTML과 ID 매칭 완료)
+// 4. 회원가입 핸들러
 async function handleSignup(event) {
     event.preventDefault();
 
@@ -199,11 +220,17 @@ async function handleSignup(event) {
 
     const signupId = document.getElementById('signupId')?.value.trim();
     const signupPw = document.getElementById('signupPw')?.value;
+    const signupPwConfirm = document.getElementById('signupPwConfirm')?.value;
     const signupName = document.getElementById('signupName')?.value.trim();
     const role = document.getElementById('signupRole')?.value;
     const dept = document.getElementById('signupDept') ? document.getElementById('signupDept').value : '';
     const phone = document.getElementById('signupPhone')?.value;
-    
+
+    if (signupPw !== signupPwConfirm) {
+        alert("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+        return;
+    }
+
     let studentNumber = "";
     if (role !== 'teacher') {
         const grade = document.getElementById('signupGrade')?.value || '';
@@ -215,17 +242,18 @@ async function handleSignup(event) {
     const authMethodElement = document.querySelector('input[name="authMethod"]:checked');
     const authMethod = authMethodElement ? authMethodElement.value : 'code';
 
-    // 역할에 따른 코드 검증 추가 (authCode로 통일)
+    // 인증 코드 비교 (하이픈 및 공백 유연하게 비교)
     if (authMethod === 'code') {
-        const code = document.getElementById('authCode')?.value;
-        
+        const rawCode = document.getElementById('authCode')?.value || '';
+        const code = rawCode.replace(/[\s-]/g, ''); // 띄어쓰기 및 - 제거한 순수 숫자/문자만 추출
+
         if (role === 'teacher' && code !== '260202') {
             alert("선생님 인증 코드가 올바르지 않습니다.");
             return;
-        } else if (role === 'student_council' && code !== '26-1958') {
+        } else if (role === 'student_council' && code !== '261958') {
             alert("학생회 인증 코드가 올바르지 않습니다.");
             return;
-        } else if ((role === 'class_president' || role === 'vice_president') && code !== '26-5039') {
+        } else if ((role === 'class_president' || role === 'vice_president') && code !== '265039') {
             alert("반장/부반장 인증 코드가 올바르지 않습니다.");
             return;
         }
@@ -287,7 +315,7 @@ async function handleSignup(event) {
     }
 }
 
-// 5. 모달 열기/닫기 제어
+// 5. 모달 제어
 function openModal(modalId) {
     document.getElementById('modalOverlay').style.display = 'block';
     document.getElementById(modalId).style.display = 'block';
@@ -394,7 +422,7 @@ async function handleUpdatePw(event) {
     }
 }
 
-// 전역(window) 객체 연결
+// Window 전역 연결
 window.switchTab = switchTab;
 window.toggleRoleFields = toggleRoleFields;
 window.handleLogin = handleLogin;
