@@ -197,7 +197,8 @@ async function handleLogin(event) {
             id: userData.id,
             name: userData.name || userData.id,
             role: userData.role || 'student',
-            department: userData.department || ''
+            department: userData.department || '',
+            studentNumber: userData.studentNumber || ''
         };
 
         localStorage.setItem('userSession', JSON.stringify(sessionUser));
