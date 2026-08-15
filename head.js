@@ -40,7 +40,7 @@ const headerHTML = `
     /* 중앙 메인 메뉴 (PC) - 드롭다운 포함 */
     .nav-center {
         display: flex;
-        gap: 15px; /* 메뉴가 많아져서 간격을 15px로 조정 */
+        gap: 15px; 
         height: 100%;
     }
     .nav-item {
@@ -95,6 +95,25 @@ const headerHTML = `
         visibility: visible;
         top: 75px;
     }
+    
+    /* 🔥 추가됨: PC 드롭다운 내 소제목(클릭 불가, 강조) */
+    .dropdown-subheader {
+        display: block;
+        padding: 12px 20px 4px 20px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #333333;
+        background-color: #F8FAFC;
+        cursor: default;
+        text-align: center;
+        margin-top: 5px;
+        border-top: 1px solid #F0F0F0;
+    }
+    .dropdown-subheader:first-child {
+        margin-top: 0;
+        border-top: none;
+    }
+
     .dropdown-content a {
         color: #555555;
         padding: 10px 20px;
@@ -202,9 +221,27 @@ const headerHTML = `
     .mobile-nav-item { display: flex; flex-direction: column; }
     .mobile-nav-link { display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 500; color: #333333; padding: 12px 0; border-bottom: 1px solid #F0F0F0; text-decoration: none; cursor: pointer; }
     .mobile-nav-link i { font-size: 12px; color: #999; transition: transform 0.3s ease; }
+    
     .mobile-dropdown-content { display: none; flex-direction: column; background-color: #F8FAFC; border-radius: 6px; padding: 10px 15px; margin-top: 5px; gap: 10px; }
-    .mobile-dropdown-content a { font-size: 14px; color: #555555; text-decoration: none; padding: 5px 0; }
+    
+    /* 🔥 추가됨: 모바일 사이드바 내 소제목(클릭 불가, 강조) */
+    .mobile-dropdown-subheader {
+        display: block;
+        padding: 10px 0 2px 0;
+        font-size: 14px;
+        font-weight: 700;
+        color: #333333;
+        cursor: default;
+        border-bottom: 1px solid #E2E8F0;
+        margin-top: 5px;
+    }
+    .mobile-dropdown-subheader:first-child {
+        margin-top: 0;
+    }
+
+    .mobile-dropdown-content a { font-size: 14px; color: #555555; text-decoration: none; padding: 5px 0; padding-left: 10px;}
     .mobile-dropdown-content a:hover { color: #7BA4DB; font-weight: 500; }
+    
     .mobile-nav-item.open .mobile-dropdown-content { display: flex; }
     .mobile-nav-item.open .mobile-nav-link i { transform: rotate(180deg); }
 
@@ -236,12 +273,23 @@ const headerHTML = `
                     <a href="frinfo.html">자유게시판</a>
                 </div>
             </div>
+            
+            <!-- 🔥 변경됨: 학년부 메뉴 구조 변경 -->
             <div class="nav-item">
                 <a href="#">학년부 <i class="fa-solid fa-chevron-down"></i></a>
                 <div class="dropdown-content">
-                    <a href="#">1학년부</a>
-                    <a href="#">2학년부</a>
-                    <a href="#">3학년부</a>
+                    <!-- 1학년부 -->
+                    <span class="dropdown-subheader">1학년부</span>
+                    <!-- 여기에 1학년부 관련 <a> 태그 추가 -->
+
+                    <!-- 2학년부 -->
+                    <span class="dropdown-subheader">2학년부</span>
+                    <a href="metisign.html">멘토멘티/홈베이스 신청</a>
+                    <a href="metiset.html">멘토멘티 신청관리</a>
+
+                    <!-- 3학년부 -->
+                    <span class="dropdown-subheader">3학년부</span>
+                    <!-- 여기에 3학년부 관련 <a> 태그 추가 -->
                 </div>
             </div>
             
@@ -312,12 +360,20 @@ const headerHTML = `
                 <a href="frinfo.html" onclick="closeSidebar()">자유게시판</a>
             </div>
         </div>
+        
+        <!-- 🔥 변경됨: 모바일 학년부 메뉴 구조 변경 -->
         <div class="mobile-nav-item">
             <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">학년부 <i class="fa-solid fa-chevron-down"></i></div>
             <div class="mobile-dropdown-content">
-                <a href="#" onclick="closeSidebar()">1학년부</a>
-                <a href="#" onclick="closeSidebar()">2학년부</a>
-                <a href="#" onclick="closeSidebar()">3학년부</a>
+                <span class="mobile-dropdown-subheader">1학년부</span>
+                <!-- 여기에 1학년부 관련 <a> 태그 추가 -->
+
+                <span class="mobile-dropdown-subheader">2학년부</span>
+                <a href="metisign.html" onclick="closeSidebar()">멘토멘티/홈베이스 신청</a>
+                <a href="metiset.html" onclick="closeSidebar()">멘토멘티 신청관리</a>
+
+                <span class="mobile-dropdown-subheader">3학년부</span>
+                <!-- 여기에 3학년부 관련 <a> 태그 추가 -->
             </div>
         </div>
         
@@ -367,6 +423,7 @@ const headerHTML = `
 </aside>
 `;
 
+// 자바스크립트 로직 영역은 기존과 동일하게 유지
 document.addEventListener("DOMContentLoaded", () => {
     document.body.insertAdjacentHTML('afterbegin', headerHTML);
 
@@ -381,7 +438,6 @@ document.addEventListener("DOMContentLoaded", () => {
     checkLoginState();
 });
 
-// 로그인 상태 및 직책 매핑 설정
 function checkLoginState() {
     const userSession = JSON.parse(localStorage.getItem('userSession'));
     
