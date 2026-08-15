@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hssc - 2학년 프로그램 신청</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #7BA4DB;
+            --bg-color: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --border-color: #EEEEEE;
+            --text-main: #333333;
+            --text-sub: #64748B;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans KR', sans-serif; letter-spacing: -0.5px; }
+        body { background-color: var(--bg-color); color: var(--text-main); }
+        
+        main { max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        
+        .board-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        }
+
+        .page-title { font-size: 24px; font-weight: 700; margin-bottom: 20px; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+
+        /* 탭 스타일 */
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 15px;
+            border-radius: 8px;
+            border: 1px solid #DDD;
+            background: white;
+            color: var(--text-sub);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        /* 안내 상자 */
+        .info-box {
+            background-color: #F1F5F9;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 25px;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+        .highlight { color: #EF4444; font-weight: bold; }
+
+        /* 폼 요소 */
+        .form-group { margin-bottom: 25px; }
+        .form-group label { display: block; font-weight: 500; margin-bottom: 8px; color: var(--text-main); font-size: 14px; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid #DDD; border-radius: 6px; outline: none; transition: 0.2s; font-size: 14px; }
+        .form-control:focus { border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(123, 164, 219, 0.2); }
+
+        .time-notice { font-size: 12px; font-weight: 500; color: #EF4444; margin-top: 8px; display: block; background: #FEF2F2; padding: 10px; border-radius: 6px; border: 1px solid #FCA5A5; }
+
+        /* 자습 슬롯 버튼 선택기 */
+        .slot-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .slot-option {
+            border: 1px solid #DDD;
+            padding: 12px 5px;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            background: white;
+            font-size: 13px;
+            color: var(--text-sub);
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        .slot-option.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .mentee-input-box { margin-top: 10px; display: none; background: #F8FAFC; padding: 15px; border-radius: 6px; border: 1px dashed #CBD5E1; }
+        .mentee-name-display { font-size: 13px; font-weight: 500; margin-top: 8px; display: block; }
+
+        /* 제출 및 버튼 */
+        .btn-submit {
+            padding: 12px 20px;
+            background-color: var(--primary-color);
+            color: #FFF;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 15px;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.2s;
+            margin-top: 10px;
+        }
+        .btn-submit:disabled { background-color: #94A3B8; cursor: not-allowed; }
+        .btn-refresh { padding: 8px 15px; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; cursor: pointer; font-size: 13px; transition: 0.2s; }
+        .btn-refresh:hover { background-color: #E2E8F0; }
+
+        /* 삭제 버튼 */
+        .btn-delete {
+            padding: 6px 10px;
+            background-color: #EF4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-delete:hover { background-color: #DC2626; }
+
+        /* 신청 명단 테이블 */
+        .list-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; text-align: center; }
+        .list-table th { background-color: #F8FAFC; padding: 12px; border-top: 2px solid var(--text-main); border-bottom: 1px solid var(--border-color); color: var(--text-main); font-weight: 500; }
+        .list-table td { padding: 12px; border-bottom: 1px solid var(--border-color); color: var(--text-main); vertical-align: middle; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; color: white; }
+        .badge-homebase { background-color: #10B981; }
+        .badge-mentor { background-color: #F59E0B; }
+        .empty-msg { text-align: center; padding: 30px; color: var(--text-sub); font-size: 14px; }
+        
+        .day-header { margin-top: 30px; font-size: 16px; color: var(--primary-color); border-bottom: 2px solid var(--border-color); padding-bottom: 8px; display: flex; align-items: center; gap: 8px; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+<script src="head.js"></script>
+
+<main>
+    <div class="board-container">
+        <h2 class="page-title"><i class="fa-solid fa-user-graduate" style="color: var(--primary-color);"></i> 2학년 자습/멘토멘티 신청</h2>
+        
+        <div class="tab-container">
+            <button class="tab-btn active" id="tab-apply" onclick="switchTab('apply')"><i class="fa-solid fa-pen-to-square"></i> 신청하기</button>
+            <button class="tab-btn" id="tab-list" onclick="switchTab('list')"><i class="fa-solid fa-list-check"></i> 주간 신청 명단</button>
+        </div>
+
+        <!-- 1. 신청하기 탭 -->
+        <div id="view-apply" class="view-section active">
+            <div class="info-box">
+                • 멘토멘티 프로그램은 야간자율학습 1,2교시에 진행됩니다.<br>
+                • <span class="highlight">하나의 시간에는 하나의 종류만 할 수 있고, 주 각 자습별 1회만 신청할 수 있습니다.</span><br>
+                • 월요일~금요일(수요일 제외) 중 1회만 참여 가능합니다.<br>
+                • 각 교시당 1:1로 구성되며, 최대 5팀까지 가능합니다.(멘토멘티)<br>
+                • 홈베이스 자습의 경우 12명까지 가능합니다.<br>
+                • <span class="highlight">수정을 원하실 경우, 명단 탭에서 기존 내역을 '삭제'한 후 다시 신청해주세요.</span>
+            </div>
+
+            <div class="form-group">
+                <label for="applyDate">참여 희망 요일 및 날짜</label>
+                <select id="applyDate" class="form-control"></select>
+                <span id="time-display" class="time-notice">현재 신청 설정 정보를 불러오는 중입니다...</span>
+            </div>
+
+            <div class="form-group">
+                <label>1교시 활동 (18:50 ~ 20:00)</label>
+                <div class="slot-container" id="slot1-container">
+                    <div class="slot-option active" id="slot1-none" onclick="selectSlot(1, 'none', this)">신청 안 함</div>
+                    <div class="slot-option" id="slot1-homebase" onclick="selectSlot(1, 'homebase', this)">홈베이스</div>
+                    <div class="slot-option" id="slot1-mentor" onclick="selectSlot(1, 'mentor', this)">멘토멘티</div>
+                </div>
+                <div id="mentee-box-1" class="mentee-input-box">
+                    <input type="text" id="mentee-id-1" class="form-control" placeholder="멘티 학번 입력 (예: 20101) (입력 후 바깥 클릭)" onblur="verifyMentee(1)">
+                    <span id="mentee-msg-1" class="mentee-name-display"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>2교시 활동 (20:10 ~ 21:20)</label>
+                <div class="slot-container" id="slot2-container">
+                    <div class="slot-option active" id="slot2-none" onclick="selectSlot(2, 'none', this)">신청 안 함</div>
+                    <div class="slot-option" id="slot2-homebase" onclick="selectSlot(2, 'homebase', this)">홈베이스</div>
+                    <div class="slot-option" id="slot2-mentor" onclick="selectSlot(2, 'mentor', this)">멘토멘티</div>
+                </div>
+                <div id="mentee-box-2" class="mentee-input-box">
+                    <input type="text" id="mentee-id-2" class="form-control" placeholder="멘티 학번 입력 (예: 20101) (입력 후 바깥 클릭)" onblur="verifyMentee(2)">
+                    <span id="mentee-msg-2" class="mentee-name-display"></span>
+                </div>
+            </div>
+
+            <button id="submitBtn" class="btn-submit" onclick="submitApplication()">신청 완료하기</button>
+        </div>
+
+        <!-- 2. 신청 명단 탭 -->
+        <div id="view-list" class="view-section">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 15px; color: var(--text-main); font-weight: 700;">이번 주 전체 신청 내역</h3>
+                <button class="btn-refresh" onclick="fetchList()"><i class="fa-solid fa-rotate-right"></i> 새로고침</button>
+            </div>
+            
+            <div id="list-result-container">
+                <div class="empty-msg">데이터를 불러오는 중입니다... ⏳</div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script>
+    function switchTab(tabName) {
+        document.getElementById('tab-apply').classList.remove('active');
+        document.getElementById('tab-list').classList.remove('active');
+        document.getElementById('view-apply').classList.remove('active');
+        document.getElementById('view-list').classList.remove('active');
+
+        document.getElementById('tab-' + tabName).classList.add('active');
+        document.getElementById('view-' + tabName).classList.add('active');
+
+        if(tabName === 'list' && window.fetchList) {
+            window.fetchList();
+        }
+    }
+
+    window.weekDatesList = [];
+
+    function setupDateDropdown() {
+        const dateSelect = document.getElementById('applyDate');
+        let optionsHtml = '<option value="">선택하세요</option>';
+        
+        let targetDate = new Date();
+        const dayOfWeek = targetDate.getDay(); 
+        
+        if (dayOfWeek === 0) targetDate.setDate(targetDate.getDate() + 1); 
+        else if (dayOfWeek === 6) targetDate.setDate(targetDate.getDate() + 2);
+        else targetDate.setDate(targetDate.getDate() - (dayOfWeek - 1));
+        
+        const dayNames = ['월', '화', '수', '목', '금'];
+        
+        for(let i = 0; i < 5; i++) {
+            if (i !== 2) { // 수요일 제외
+                const d = new Date(targetDate);
+                d.setDate(targetDate.getDate() + i);
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                const dateString = `${yyyy}${mm}${dd}`; 
+                const displayString = `${dayNames[i]}요일 (${mm}/${dd})`; 
+                window.weekDatesList.push({ date: dateString, day: dayNames[i], display: displayString }); 
+                optionsHtml += `<option value="${dateString}|${dayNames[i]}">${displayString}</option>`;
+            }
+        }
+        dateSelect.innerHTML = optionsHtml;
+    }
+    setupDateDropdown();
+</script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCWPYuQeihfDgp5tVlrObBVRs2UZDlTkks",
+        authDomain: "hyeongsok-student-counci-e6115.firebaseapp.com",
+        projectId: "hyeongsok-student-counci-e6115",
+        storageBucket: "hyeongsok-student-counci-e6115.firebasestorage.app",
+        messagingSenderId: "847440892138",
+        appId: "1:847440892138:web:152021aaaf5f330b2d0793",
+        measurementId: "G-F40YFFMGWE"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // ==========================================
+    // [세션 및 권한 체크]
+    // ==========================================
+    const userSession = JSON.parse(localStorage.getItem('userSession') || '{}');
+    
+    window.currentUserId = userSession.id || '';
+    const currentUserName = userSession.name || '';
+    window.cRole = userSession.role || '';
+    
+    // login.js에서 저장한 학번 가져오기
+    const userStudentNumber = userSession.studentNumber || ''; 
+
+    // 학번 첫 글자로 2학년 판별
+    const isGrade2 = String(userStudentNumber).startsWith('2');
+    
+    const isAdmin = (window.cRole === 'admin');
+    const isTeacher = (window.cRole === 'teacher' || Number(window.cRole) >= 45); 
+
+    if (!window.currentUserId) {
+        alert("로그인이 필요합니다.");
+        window.location.href = "login.html"; 
+    } else if (!isGrade2 && !isAdmin && !isTeacher) {
+        alert(`2학년 학생, 선생님, 관리자만 접근할 수 있는 페이지입니다.\n(회원님의 현재 학번 정보: ${userStudentNumber || '없음'})`);
+        window.location.href = "index.html"; 
+    }
+
+    window.selections = { 1: 'none', 2: 'none' };
+    window.menteeData = { 1: { id: '', name: '' }, 2: { id: '', name: '' } };
+    window.appSettings = null;
+
+    async function loadAppPeriodSettings() {
+        const timeDisplay = document.getElementById('time-display');
+        try {
+            const periodSnap = await getDoc(doc(db, "system_settings", "app_period"));
+            if (periodSnap.exists()) {
+                window.appSettings = periodSnap.data();
+                const { openDays, startTime, endTime } = window.appSettings;
+                
+                if (openDays && openDays.length > 0) {
+                    timeDisplay.innerHTML = `⏳ <b>신청 가능 시간:</b> 매주 [${openDays.join(', ')}] 요일 ${startTime || '00:00'} ~ ${endTime || '23:59'}`;
+                    timeDisplay.style.color = "#2563EB";
+                    timeDisplay.style.backgroundColor = "#EFF6FF";
+                    timeDisplay.style.borderColor = "#BFDBFE";
+                } else {
+                    timeDisplay.innerHTML = "🚫 현재 선생님에 의해 신청이 마감되었습니다.";
+                }
+            }
+        } catch (e) {
+            timeDisplay.innerHTML = "시간 설정을 불러오지 못했습니다.";
+        }
+    }
+    loadAppPeriodSettings();
+
+    window.selectSlot = function(slot, type, el) {
+        const otherSlot = slot === 1 ? 2 : 1;
+        if (type !== 'none' && window.selections[otherSlot] === type) {
+            let typeKo = type === 'homebase' ? '홈베이스' : '멘토멘티';
+            alert(`하루에 같은 종류의 자습은 두 개 신청할 수 없습니다.\n이미 다른 교시에 [${typeKo}]를 선택하셨습니다.`);
+            return;
+        }
+        window.selections[slot] = type;
+        const container = document.getElementById(`slot${slot}-container`);
+        container.querySelectorAll('.slot-option').forEach(opt => opt.classList.remove('active'));
+        el.classList.add('active');
+
+        const menteeBox = document.getElementById(`mentee-box-${slot}`);
+        if (type === 'mentor') {
+            menteeBox.style.display = 'block';
+        } else {
+            menteeBox.style.display = 'none';
+            document.getElementById(`mentee-id-${slot}`).value = '';
+            document.getElementById(`mentee-msg-${slot}`).innerText = '';
+            window.menteeData[slot] = { id: '', name: '' };
+        }
+    };
+
+    // ==========================================
+    // [학번으로 멘티 검증 로직]
+    // ==========================================
+    window.verifyMentee = async function(slot) {
+        const inputStudentNum = document.getElementById(`mentee-id-${slot}`).value.trim();
+        const msgLabel = document.getElementById(`mentee-msg-${slot}`);
+        
+        if(!inputStudentNum) { 
+            msgLabel.innerText = ""; 
+            window.menteeData[slot] = { id: '', name: '' };
+            return; 
+        }
+        
+        if(inputStudentNum === userStudentNumber) { 
+            msgLabel.innerText = "❌ 본인의 학번은 입력할 수 없습니다."; 
+            msgLabel.style.color = "#EF4444"; 
+            window.menteeData[slot] = { id: '', name: '' };
+            return; 
+        }
+
+        msgLabel.innerText = "멘티 정보 조회 중... ⏳";
+        msgLabel.style.color = "#64748B";
+
+        try {
+            const usersRef = collection(db, "users");
+            const q = query(usersRef, where("studentNumber", "==", inputStudentNum));
+            const querySnapshot = await getDocs(q);
+
+            if(!querySnapshot.empty) {
+                const userDoc = querySnapshot.docs[0];
+                const userData = userDoc.data();
+                
+                const mName = userData.userName || userData.name || userData.nmae; 
+                const mId = userDoc.id; 
+
+                msgLabel.innerText = `✅ 확인됨: 멘티 ${mName} (${inputStudentNum})`;
+                msgLabel.style.color = "#10B981";
+                
+                window.menteeData[slot].id = mId; 
+                window.menteeData[slot].name = mName;
+            } else {
+                msgLabel.innerText = "❌ 가입되지 않은 학번이거나 정보가 없습니다.";
+                msgLabel.style.color = "#EF4444";
+                window.menteeData[slot] = { id: '', name: '' };
+            }
+        } catch(error) {
+            console.error("멘티 검색 오류:", error);
+            msgLabel.innerText = "정보를 불러오지 못했습니다.";
+            msgLabel.style.color = "#EF4444";
+            window.menteeData[slot] = { id: '', name: '' };
+        }
+    };
+
+    async function checkWeeklyTypeLimits(targetDateString) {
+        let hasHomebase = false;
+        let hasMentor = false;
+        for (const info of window.weekDatesList) {
+            if (info.date === targetDateString) continue; 
+            const docId = `${info.date}_${info.day}_${window.currentUserId}`;
+            const existingDoc = await getDoc(doc(db, "study_applications", docId));
+            if (existingDoc.exists()) {
+                const data = existingDoc.data();
+                if (data.slot1_type === 'homebase' || data.slot2_type === 'homebase') hasHomebase = true;
+                if (data.slot1_type === 'mentor' || data.slot2_type === 'mentor') hasMentor = true;
+            }
+        }
+        return { homebase: hasHomebase, mentor: hasMentor };
+    }
+
+    window.submitApplication = async function() {
+        if (window.appSettings) {
+            const { openDays, startTime, endTime } = window.appSettings;
+            const now = new Date();
+            const daysMap = ['일', '월', '화', '수', '목', '금', '토'];
+            const todayStr = daysMap[now.getDay()];
+            const currentHHMM = String(now.getHours()).padStart(2, '0') + ":" + String(now.getMinutes()).padStart(2, '0');
+
+            if (!openDays || openDays.length === 0) return alert("관리자가 폼을 모두 마감하여 신청할 수 없습니다.");
+            if (!openDays.includes(todayStr)) return alert(`오늘은 신청 가능한 요일이 아닙니다.\n(신청 가능 요일: ${openDays.join(', ')})`);
+            if (startTime && endTime) {
+                if (currentHHMM < startTime || currentHHMM > endTime) return alert(`현재 신청 가능 시간이 아닙니다.\n(오픈 시간: ${startTime} ~ ${endTime})`);
+            }
+        }
+
+        const dateVal = document.getElementById('applyDate').value;
+        if(!dateVal) return alert("참여를 희망하는 요일과 날짜를 선택해주세요.");
+        const [yyyyMMdd, dayName] = dateVal.split('|');
+
+        if(window.selections[1] === 'none' && window.selections[2] === 'none') {
+            return alert("1교시와 2교시 중 최소 하나 이상의 활동을 선택해주세요.");
+        }
+        if(window.selections[1] === 'mentor' && !window.menteeData[1].name) return alert("1교시 멘티 학번을 다시 확인해주세요.");
+        if(window.selections[2] === 'mentor' && !window.menteeData[2].name) return alert("2교시 멘티 학번을 다시 확인해주세요.");
+
+        const btn = document.getElementById('submitBtn');
+        btn.innerText = "제출 중입니다...";
+        btn.disabled = true;
+
+        try {
+            const weeklyHistory = await checkWeeklyTypeLimits(yyyyMMdd);
+            if ((window.selections[1] === 'homebase' || window.selections[2] === 'homebase') && weeklyHistory.homebase) {
+                alert("⚠️ 홈베이스는 일주일에 단 1회만 신청 가능합니다.");
+                btn.innerText = "신청 완료하기"; btn.disabled = false; return;
+            }
+            if ((window.selections[1] === 'mentor' || window.selections[2] === 'mentor') && weeklyHistory.mentor) {
+                alert("⚠️ 멘토멘티는 일주일에 단 1회만 신청 가능합니다.");
+                btn.innerText = "신청 완료하기"; btn.disabled = false; return;
+            }
+
+            const q = query(collection(db, "study_applications"), where("applyDate", "==", yyyyMMdd));
+            const dateSnap = await getDocs(q);
+            let c = { s1h: 0, s1m: 0, s2h: 0, s2m: 0 };
+
+            dateSnap.forEach(docSnap => {
+                if(docSnap.id.endsWith(`_${window.currentUserId}`)) return; 
+                const data = docSnap.data();
+                if (data.slot1_type === 'homebase') c.s1h++;
+                if (data.slot1_type === 'mentor') c.s1m++;
+                if (data.slot2_type === 'homebase') c.s2h++;
+                if (data.slot2_type === 'mentor') c.s2m++;
+            });
+
+            if (window.selections[1] === 'homebase' && c.s1h >= 12) { alert("❌ 1교시 홈베이스 자습 신청 마감 (최대 12명)"); btn.innerText = "신청 완료하기"; btn.disabled = false; return; }
+            if (window.selections[1] === 'mentor' && c.s1m >= 5) { alert("❌ 1교시 멘토멘티 신청 마감 (최대 5팀)"); btn.innerText = "신청 완료하기"; btn.disabled = false; return; }
+            if (window.selections[2] === 'homebase' && c.s2h >= 12) { alert("❌ 2교시 홈베이스 자습 신청 마감 (최대 12명)"); btn.innerText = "신청 완료하기"; btn.disabled = false; return; }
+            if (window.selections[2] === 'mentor' && c.s2m >= 5) { alert("❌ 2교시 멘토멘티 신청 마감 (최대 5팀)"); btn.innerText = "신청 완료하기"; btn.disabled = false; return; }
+
+            const docId = `${yyyyMMdd}_${dayName}_${window.currentUserId}`;
+            let payload = {
+                id: window.currentUserId, 
+                name: currentUserName, 
+                studentNumber: userStudentNumber, 
+                applyDay: dayName, 
+                applyDate: yyyyMMdd, 
+                timestamp: new Date().toISOString()
+            };
+
+            if (window.selections[1] !== 'none') {
+                payload.slot1_type = window.selections[1];
+                if (window.selections[1] === 'mentor') { payload.slot1_partnerId = window.menteeData[1].id; payload.slot1_partnerName = window.menteeData[1].name; }
+            }
+            if (window.selections[2] !== 'none') {
+                payload.slot2_type = window.selections[2];
+                if (window.selections[2] === 'mentor') { payload.slot2_partnerId = window.menteeData[2].id; payload.slot2_partnerName = window.menteeData[2].name; }
+            }
+
+            await setDoc(doc(db, "study_applications", docId), payload);
+            alert(`${dayName}요일 신청이 완료되었습니다!`);
+            
+            switchTab('list');
+            btn.innerText = "신청 완료하기"; btn.disabled = false;
+
+        } catch (error) {
+            alert("신청 중 오류가 발생했습니다: " + error.message);
+            btn.innerText = "신청 완료하기"; btn.disabled = false;
+        }
+    };
+
+    // ==========================================
+    // [삭제 기능]
+    // ==========================================
+    window.deleteApp = async function(applyDate, applyDay, studentId) {
+        if(!confirm("해당 신청 내역을 정말 삭제하시겠습니까?\n(수정을 원하시는 경우 삭제 후 다시 신청해주세요)")) return;
+        
+        try {
+            const docId = `${applyDate}_${applyDay}_${studentId}`;
+            await deleteDoc(doc(db, "study_applications", docId));
+            alert("삭제가 완료되었습니다.");
+            window.fetchList(); 
+        } catch (error) {
+            console.error(error);
+            alert("삭제 중 오류가 발생했습니다.");
+        }
+    };
+
+    window.fetchList = async function() {
+        const container = document.getElementById('list-result-container');
+        container.innerHTML = '<div class="empty-msg">주간 데이터를 불러오는 중입니다... ⏳</div>';
+
+        try {
+            const weekDates = window.weekDatesList.map(info => info.date);
+            if(weekDates.length === 0) {
+                container.innerHTML = '<div class="empty-msg">이번 주 신청 가능한 날짜가 없습니다.</div>';
+                return;
+            }
+
+            const q = query(collection(db, "study_applications"), where("applyDate", "in", weekDates));
+            const snap = await getDocs(q);
+
+            const groupedData = {};
+            window.weekDatesList.forEach(info => {
+                groupedData[info.date] = { display: info.display, records: [] };
+            });
+
+            if(!snap.empty) {
+                snap.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if(groupedData[data.applyDate]) {
+                        groupedData[data.applyDate].records.push(data);
+                    }
+                });
+            }
+
+            let totalHtml = '';
+
+            window.weekDatesList.forEach(info => {
+                const dayData = groupedData[info.date];
+                
+                totalHtml += `<div class="day-header"><i class="fa-regular fa-calendar"></i> ${dayData.display}</div>`;
+
+                if(dayData.records.length === 0) {
+                    totalHtml += `<div class="empty-msg" style="padding: 15px;">신청 내역이 없습니다.</div>`;
+                } else {
+                    let tableHtml = `
+                        <table class="list-table">
+                            <thead>
+                                <tr>
+                                    <th>이름 (학번)</th>
+                                    <th>1교시</th>
+                                    <th>2교시</th>
+                                    <th>관리</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    dayData.records.sort((a, b) => a.name.localeCompare(b.name));
+
+                    dayData.records.forEach(data => {
+                        let slot1_html = '<span style="color:#94A3B8;">-</span>';
+                        if(data.slot1_type === 'homebase') slot1_html = '<span class="badge badge-homebase">홈베이스</span>';
+                        else if(data.slot1_type === 'mentor') slot1_html = `<span class="badge badge-mentor">멘토멘티</span><br><span style="font-size:11px; color:#64748B;">(w/ ${data.slot1_partnerName})</span>`;
+
+                        let slot2_html = '<span style="color:#94A3B8;">-</span>';
+                        if(data.slot2_type === 'homebase') slot2_html = '<span class="badge badge-homebase">홈베이스</span>';
+                        else if(data.slot2_type === 'mentor') slot2_html = `<span class="badge badge-mentor">멘토멘티</span><br><span style="font-size:11px; color:#64748B;">(w/ ${data.slot2_partnerName})</span>`;
+
+                        let manage_html = '<span style="color:#CBD5E1;">-</span>';
+                        if (data.id === window.currentUserId || isAdmin || isTeacher) {
+                            manage_html = `<button class="btn-delete" onclick="deleteApp('${data.applyDate}', '${data.applyDay}', '${data.id}')"><i class="fa-solid fa-trash"></i> 삭제</button>`;
+                        }
+                        
+                        let dispStudentNumber = data.studentNumber || data.id;
+
+                        tableHtml += `
+                            <tr>
+                                <td style="font-weight:500;">${data.name} <span style="font-size:11px; color:#64748B;">(${dispStudentNumber})</span></td>
+                                <td>${slot1_html}</td>
+                                <td>${slot2_html}</td>
+                                <td>${manage_html}</td>
+                            </tr>
+                        `;
+                    });
+                    tableHtml += `</tbody></table>`;
+                    totalHtml += tableHtml;
+                }
+            });
+
+            container.innerHTML = totalHtml;
+
+        } catch (error) {
+            console.error(error);
+            container.innerHTML = '<div class="empty-msg" style="color:#EF4444;">데이터를 불러오는 중 오류가 발생했습니다.</div>';
+        }
+    };
+</script>
+
+</body>
+</html>
