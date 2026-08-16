@@ -9,6 +9,7 @@ const headerHTML = `
         border-bottom: 1px solid #F5F5F5;
         z-index: 1000;
     }
+    /* 원래 디자인 유지: max-width 1200px 복구 */
     .nav-container {
         max-width: 1200px;
         margin: 0 auto;
@@ -18,11 +19,13 @@ const headerHTML = `
         align-items: center;
         justify-content: space-between;
     }
+    
     .nav-left {
         display: flex;
         align-items: center;
         gap: 12px;
         text-decoration: none;
+        flex-shrink: 0;
     }
     .nav-left img {
         height: 40px;
@@ -37,7 +40,7 @@ const headerHTML = `
         white-space: nowrap;
     }
     
-    /* 중앙 메인 메뉴 (PC) - 드롭다운 포함 */
+    /* 원래 디자인 유지: nav-center 기본 배치 복구 */
     .nav-center {
         display: flex;
         gap: 15px; 
@@ -71,7 +74,10 @@ const headerHTML = `
         transform: rotate(180deg);
     }
     
-    /* PC 드롭다운 콘텐츠 */
+    .nav-item:hover > a i.no-rotate {
+        transform: none;
+    }
+
     .dropdown-content {
         position: absolute;
         top: 80px;
@@ -96,7 +102,6 @@ const headerHTML = `
         top: 75px;
     }
     
-    /* 🔥 추가됨: PC 드롭다운 내 소제목(클릭 불가, 강조) */
     .dropdown-subheader {
         display: block;
         padding: 12px 20px 4px 20px;
@@ -130,20 +135,19 @@ const headerHTML = `
         font-weight: 500;
     }
     
-    /* 우측 로그인 영역 */
     .nav-right {
         display: flex;
         align-items: center;
         gap: 15px;
+        flex-shrink: 0;
     }
     
-    /* 로그인 버튼 스타일 */
     .auth-btn {
         background-color: transparent;
         border: 1px solid #7BA4DB;
         color: #7BA4DB;
         padding: 8px 22px;
-        border-radius: 4px;
+        border-radius: 20px;
         font-size: 14px;
         font-weight: 500;
         cursor: pointer;
@@ -154,50 +158,141 @@ const headerHTML = `
         background-color: #7BA4DB;
         color: #FFFFFF;
     }
-    
-    /* 로그인 완료 상태 (유저 정보) 스타일 */
+
+    /* 🌟 핵심 해결: 프로필을 세로(2줄)로 배치하여 가로 공간 차지 최소화 */
     .user-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .profile-link-compact {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: background-color 0.2s;
+    }
+    .profile-link-compact:hover {
+        background-color: #F8FAFC;
+    }
+    .profile-avatar {
+        font-size: 26px;
+        color: #94A3B8;
+    }
+    .profile-text-wrap {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.3;
+    }
+    .profile-role {
+        font-size: 11px;
+        color: #64748B;
+        white-space: nowrap;
+    }
+    .profile-name {
         font-size: 14px;
-        color: #333;
+        color: #0F172A;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .profile-name span {
+        font-size: 13px;
+        font-weight: 400;
+    }
+    
+    /* 깔끔한 미니 로그아웃 버튼 */
+    .logout-btn-compact {
+        background: transparent;
+        border: 1px solid #E2E8F0;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #64748B;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+    .logout-btn-compact:hover {
+        background: #F1F5F9;
+        color: #0F172A;
+    }
+
+    .admin-btn {
+        border-color: #FECACA !important;
+        color: #EF4444 !important;
+        background-color: #FEF2F2 !important;
+        border-radius: 20px !important;
+        padding: 6px 14px !important;
+        font-size: 12px !important;
+    }
+    .admin-btn:hover {
+        background-color: #EF4444 !important;
+        color: #FFFFFF !important;
+    }
+
+    /* 모바일 사용자 카드 */
+    .mobile-user-card {
+        background-color: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+    .mobile-user-header {
         display: flex;
         align-items: center;
         gap: 12px;
     }
-    /* 개인정보 수정 링크 호버 효과 */
-    .profile-link {
-        color: #333;
-        text-decoration: none;
-        transition: color 0.2s;
+    .mobile-user-avatar {
+        width: 40px;
+        height: 40px;
+        background-color: #EBF3FA;
+        color: #7BA4DB;
+        border-radius: 50%;
         display: flex;
         align-items: center;
-        gap: 5px;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+    .mobile-user-info-text {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .mobile-user-name {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1E293B;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .mobile-role-badge {
+        font-size: 11px;
+        font-weight: 600;
+        color: #4A72B0;
+        background-color: #FFFFFF;
+        border: 1px solid #D5E3F6;
+        padding: 3px 9px;
+        border-radius: 20px;
         white-space: nowrap;
+        align-self: flex-start;
     }
-    .profile-link:hover {
-        color: #7BA4DB;
-        text-decoration: underline;
-    }
-    .profile-link b {
-        color: #7BA4DB;
-    }
-    
-    .logout-btn {
-        background: #F1F5F9;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 500;
-        color: #475569;
-        cursor: pointer;
-        transition: 0.2s;
-        white-space: nowrap;
-    }
-    .logout-btn:hover {
-        background: #E2E8F0;
+    .mobile-user-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 4px;
     }
 
-    /* 모바일 햄버거 메뉴 버튼 */
     .menu-toggle {
         display: none;
         background: none;
@@ -207,7 +302,6 @@ const headerHTML = `
         color: #333333;
     }
 
-    /* 모바일 전용 사이드바 */
     .sidebar {
         position: fixed; top: 0; right: -280px; width: 280px; height: 100%;
         background-color: #FFFFFF; box-shadow: -5px 0 25px rgba(0,0,0,0.03);
@@ -224,7 +318,6 @@ const headerHTML = `
     
     .mobile-dropdown-content { display: none; flex-direction: column; background-color: #F8FAFC; border-radius: 6px; padding: 10px 15px; margin-top: 5px; gap: 10px; }
     
-    /* 🔥 추가됨: 모바일 사이드바 내 소제목(클릭 불가, 강조) */
     .mobile-dropdown-subheader {
         display: block;
         padding: 10px 0 2px 0;
@@ -245,12 +338,11 @@ const headerHTML = `
     .mobile-nav-item.open .mobile-dropdown-content { display: flex; }
     .mobile-nav-item.open .mobile-nav-link i { transform: rotate(180deg); }
 
-    /* 상단 배치용 모바일 인증/프로필 영역 스타일 */
     .sidebar-auth { padding-bottom: 20px; border-bottom: 1px solid #F0F0F0; }
     .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.15); z-index: 1999; display: none; }
     .sidebar-overlay.active { display: block; }
 
-    /* 모바일 최적화 */
+    /* 원래 모바일 분기점 1024px 복구 */
     @media (max-width: 1024px) {
         .nav-center { display: none; }
         .auth-container-desktop { display: none; }
@@ -274,7 +366,6 @@ const headerHTML = `
                 </div>
             </div>
             
-            <!-- 🔥 변경됨: 학년부 메뉴 구조 변경 -->
             <div class="nav-item">
                 <a href="#">학년부 <i class="fa-solid fa-chevron-down"></i></a>
                 <div class="dropdown-content">
@@ -296,37 +387,47 @@ const headerHTML = `
             <div class="nav-item">
                 <a href="#">회장단 <i class="fa-solid fa-chevron-down"></i></a>
                 <div class="dropdown-content">
-                    <a href="#">부서 정보</a>
+                    <a href="preinfo.html">부서 정보</a>
                 </div>
             </div>
             <div class="nav-item">
                 <a href="#">홍보미디어부 <i class="fa-solid fa-chevron-down"></i></a>
                 <div class="dropdown-content">
-                    <a href="#">부서 정보</a>
+                    <a href="adinfo.html">부서 정보</a>
+                    <a href="survey.html">설문조사</a>
                 </div>
             </div>
             <div class="nav-item">
                 <a href="#">문화소통부 <i class="fa-solid fa-chevron-down"></i></a>
                 <div class="dropdown-content">
-                    <a href="#">부서 정보</a>
+                    <a href="culinfo.html">부서 정보</a>
                 </div>
             </div>
             <div class="nav-item">
                 <a href="#">건강안전부 <i class="fa-solid fa-chevron-down"></i></a>
                 <div class="dropdown-content">
-                    <a href="#">부서 정보</a>
+                    <a href="healthinfo.html">부서 정보</a>
                 </div>
             </div>
             <div class="nav-item">
                 <a href="#">학술문예부 <i class="fa-solid fa-chevron-down"></i></a>
                 <div class="dropdown-content">
-                    <a href="#">부서 정보</a>
+                    <a href="stuinfo.html">부서 정보</a>
                 </div>
             </div>
             <div class="nav-item">
                 <a href="#">환경보호부 <i class="fa-solid fa-chevron-down"></i></a>
                 <div class="dropdown-content">
-                    <a href="#">부서 정보</a>
+                    <a href="envinfo.html">부서 정보</a>
+                </div>
+            </div>
+            
+            <!-- 점 3개(기타) 드롭다운 메뉴 -->
+            <div class="nav-item">
+                <a href="#" style="padding-left: 5px;"><i class="fa-solid fa-ellipsis no-rotate" style="font-size: 18px;"></i></a>
+                <div class="dropdown-content" style="min-width: 130px;">
+                    <span class="dropdown-subheader">기타</span>
+                    <a href="#">사이트 정보</a>
                 </div>
             </div>
         </nav>
@@ -347,7 +448,6 @@ const headerHTML = `
 <aside class="sidebar" id="sidebarMenu">
     <button class="sidebar-close" id="sidebarCloseBtn"><i class="fa-solid fa-xmark"></i></button>
     
-    <!-- 모바일 최상단: 로그인 버튼 / 사용자 정보 표시 영역 -->
     <div class="sidebar-auth" id="authContainerMobile">
         <button class="auth-btn" style="width: 100%;" onclick="location.href='login.html'">로그인</button>
     </div>
@@ -361,7 +461,6 @@ const headerHTML = `
             </div>
         </div>
         
-        <!-- 🔥 변경됨: 모바일 학년부 메뉴 구조 변경 -->
         <div class="mobile-nav-item">
             <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">학년부 <i class="fa-solid fa-chevron-down"></i></div>
             <div class="mobile-dropdown-content">
@@ -380,39 +479,41 @@ const headerHTML = `
         <div class="mobile-nav-item">
             <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">회장단 <i class="fa-solid fa-chevron-down"></i></div>
             <div class="mobile-dropdown-content">
-                <a href="#" onclick="closeSidebar()">부서 정보</a>
+                <a href="preinfo.html" onclick="closeSidebar()">부서 정보</a>
             </div>
         </div>
         <div class="mobile-nav-item">
             <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">홍보미디어부 <i class="fa-solid fa-chevron-down"></i></div>
             <div class="mobile-dropdown-content">
-                <a href="#" onclick="closeSidebar()">부서 정보</a>
+                <a href="adinfo.html" onclick="closeSidebar()">부서 정보</a>
+                <a href="survey.html" onclick="closeSidebar()">설문조사</a>
             </div>
         </div>
         <div class="mobile-nav-item">
             <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">문화소통부 <i class="fa-solid fa-chevron-down"></i></div>
             <div class="mobile-dropdown-content">
-                <a href="#" onclick="closeSidebar()">부서 정보</a>
+                <a href="culinfo.html" onclick="closeSidebar()">부서 정보</a>
             </div>
         </div>
         <div class="mobile-nav-item">
             <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">건강안전부 <i class="fa-solid fa-chevron-down"></i></div>
             <div class="mobile-dropdown-content">
-                <a href="#" onclick="closeSidebar()">부서 정보</a>
+                <a href="healthinfo.html" onclick="closeSidebar()">부서 정보</a>
             </div>
         </div>
         <div class="mobile-nav-item">
             <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">학술문예부 <i class="fa-solid fa-chevron-down"></i></div>
             <div class="mobile-dropdown-content">
-                <a href="#" onclick="closeSidebar()">부서 정보</a>
+                <a href="stuinfo.html" onclick="closeSidebar()">부서 정보</a>
             </div>
         </div>
         <div class="mobile-nav-item">
             <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">환경보호부 <i class="fa-solid fa-chevron-down"></i></div>
             <div class="mobile-dropdown-content">
-                <a href="#" onclick="closeSidebar()">부서 정보</a>
+                <a href="envinfo.html" onclick="closeSidebar()">부서 정보</a>
             </div>
         </div>
+        
         <div class="mobile-nav-item">
             <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">기타 <i class="fa-solid fa-chevron-down"></i></div>
             <div class="mobile-dropdown-content">
@@ -423,7 +524,6 @@ const headerHTML = `
 </aside>
 `;
 
-// 자바스크립트 로직 영역은 기존과 동일하게 유지
 document.addEventListener("DOMContentLoaded", () => {
     document.body.insertAdjacentHTML('afterbegin', headerHTML);
 
@@ -476,30 +576,46 @@ function checkLoginState() {
         let adminButtonDesktop = '';
         let adminButtonMobile = '';
         if (userSession.role === 'admin') {
-            adminButtonDesktop = `<button class="auth-btn" style="border-color: #E74C3C; color: #E74C3C;" onclick="location.href='logset.html'"><i class="fa-solid fa-gear"></i> 회원관리</button>`;
-            adminButtonMobile = `<button class="auth-btn" style="width:100%; border-color: #E74C3C; color: #E74C3C; padding:10px;" onclick="location.href='logset.html'"><i class="fa-solid fa-gear"></i> 회원관리</button>`;
+            adminButtonDesktop = `<button class="auth-btn admin-btn" onclick="location.href='logset.html'"><i class="fa-solid fa-gear"></i></button>`;
+            adminButtonMobile = `<button class="auth-btn admin-btn" style="flex: 1; padding: 8px;" onclick="location.href='logset.html'"><i class="fa-solid fa-gear"></i> 회원관리</button>`;
         }
         
-        // PC: 이름 클릭 시 setaco.html 로 이동
+        // 🌟 PC: 직책과 이름을 상하 2줄로 배치하여 가로 넓이 문제를 완벽 해결
         if (desktopContainer) {
             desktopContainer.innerHTML = `
                 <div class="user-info">
                     ${adminButtonDesktop}
-                    <span style="font-size:12px; background:#EEF2F7; padding:3px 8px; border-radius:12px;">${finalRoleText}</span>
-                    <a href="setaco.html" class="profile-link"><i class="fa-solid fa-user"></i> <b>${userSession.name || userSession.id}</b>님</a>
-                    <button class="logout-btn" onclick="logout()">로그아웃</button>
+                    <a href="setaco.html" class="profile-link-compact">
+                        <i class="fa-solid fa-circle-user profile-avatar"></i>
+                        <div class="profile-text-wrap">
+                            <span class="profile-role">${finalRoleText}</span>
+                            <span class="profile-name">${userSession.name || userSession.id}<span>님</span></span>
+                        </div>
+                    </a>
+                    <button class="logout-btn-compact" onclick="logout()">로그아웃</button>
                 </div>
             `;
         }
         
-        // 모바일: 이름 클릭 시 setaco.html 로 이동 (사이드바 최상단 출력)
         if (mobileContainer) {
             mobileContainer.innerHTML = `
-                <div style="display:flex; flex-direction:column; gap:10px; align-items:flex-start; width:100%;">
-                    <span style="font-size:12px; background:#EEF2F7; padding:3px 8px; border-radius:12px; color:#475569;">${finalRoleText}</span>
-                    <a href="setaco.html" class="profile-link" style="font-size:16px;"><i class="fa-solid fa-user"></i> <b>${userSession.name || userSession.id}</b>님</a>
-                    ${adminButtonMobile}
-                    <button class="logout-btn" style="width:100%; padding:10px;" onclick="logout()">로그아웃</button>
+                <div class="mobile-user-card">
+                    <div class="mobile-user-header">
+                        <div class="mobile-user-avatar">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div class="mobile-user-info-text">
+                            <a href="setaco.html" class="mobile-user-name" onclick="closeSidebar()">
+                                <b>${userSession.name || userSession.id}</b>님
+                                <i class="fa-solid fa-angle-right" style="font-size:12px; color:#94A3B8;"></i>
+                            </a>
+                            <span class="mobile-role-badge">${finalRoleText}</span>
+                        </div>
+                    </div>
+                    <div class="mobile-user-actions">
+                        ${adminButtonMobile}
+                        <button class="logout-btn-compact" style="flex: 1; padding: 8px; font-size:13px;" onclick="logout()">로그아웃</button>
+                    </div>
                 </div>
             `;
         }
