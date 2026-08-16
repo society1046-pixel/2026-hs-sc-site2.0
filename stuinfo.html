@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>학술문예부 정보 - 형석고 학생회</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #7BA4DB;
+            --bg-color: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --border-color: #EEEEEE;
+            --text-main: #333333;
+            --text-sub: #64748B;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans KR', sans-serif; letter-spacing: -0.5px; }
+        body { background-color: var(--bg-color); color: var(--text-main); }
+        
+        main { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        
+        .board-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        }
+
+        .board-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--text-main);
+        }
+
+        .page-title { font-size: 26px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+        .page-title i { color: var(--primary-color); }
+
+        .btn-write {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: #FFF;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            display: none;
+            transition: background 0.2s;
+        }
+        .btn-write:hover { background-color: #5A88C7; }
+
+        /* 정보 섹션 스타일 */
+        .info-section {
+            margin-bottom: 30px;
+            background: #F8FAFC;
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1E293B;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title i { color: var(--primary-color); }
+        .view-text {
+            font-size: 15px;
+            line-height: 1.7;
+            color: #475569;
+            white-space: pre-wrap;
+        }
+
+        /* 부원 목록 그리드 */
+        .member-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        @media (max-width: 600px) {
+            .member-grid { grid-template-columns: 1fr; }
+        }
+        .member-box {
+            background-color: #FFFFFF;
+            padding: 18px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.01);
+        }
+        .member-role {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* 모달 공통 스타일 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none; justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 12px;
+            width: 90%; max-width: 650px; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;}
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 14px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; }
+        .form-control { width: 100%; padding: 12px; border: 1px solid #DDD; border-radius: 6px; font-size: 15px; font-family: inherit; }
+        .form-control:focus { outline: none; border-color: var(--primary-color); }
+        textarea.form-control { resize: vertical; min-height: 100px; }
+        
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+        .btn-cancel { padding: 10px 20px; background: #94A3B8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;}
+        .btn-submit { padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;}
+    </style>
+</head>
+<body>
+
+<!-- 헤더 스크립트 -->
+<script src="head.js"></script>
+
+<main>
+    <div class="board-container">
+        <div class="board-header">
+            <h2 class="page-title"><i class="fa-solid fa-book-open"></i> 학술문예부 소개</h2>
+            <button id="btnEdit" class="btn-write" onclick="openEditModal()"><i class="fa-solid fa-pen"></i> 정보 수정</button>
+        </div>
+
+        <!-- 1. 부서 목적 -->
+        <div class="info-section">
+            <div class="section-title"><i class="fa-solid fa-bullseye"></i> 부서 목적</div>
+            <div class="view-text" id="viewPurpose">데이터를 불러오는 중입니다...</div>
+        </div>
+
+        <!-- 2. 부서 목표 -->
+        <div class="info-section">
+            <div class="section-title"><i class="fa-solid fa-flag"></i> 부서 목표</div>
+            <div class="view-text" id="viewGoals">데이터를 불러오는 중입니다...</div>
+        </div>
+
+        <!-- 3. 부서 부원 -->
+        <div class="info-section" style="background: transparent; padding: 0; border: none;">
+            <div class="section-title"><i class="fa-solid fa-users"></i> 부원 구성</div>
+            <div class="member-grid">
+                <div class="member-box">
+                    <div class="member-role"><i class="fa-solid fa-user-tie"></i> 부장</div>
+                    <div class="view-text" id="viewHead" style="font-weight: 600; color: #0F172A;">-</div>
+                </div>
+                <div class="member-box">
+                    <div class="member-role"><i class="fa-solid fa-user-check"></i> 차장</div>
+                    <div class="view-text" id="viewVice" style="font-weight: 600; color: #0F172A;">-</div>
+                </div>
+                <div class="member-box">
+                    <div class="member-role"><i class="fa-solid fa-user-group"></i> 소속 부원</div>
+                    <div class="view-text" id="viewMembers">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- 정보 수정 모달 -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-content">
+        <h3 class="modal-title">학술문예부 정보 수정</h3>
+        
+        <div class="form-group">
+            <label>부서 목적</label>
+            <textarea id="editPurpose" class="form-control" placeholder="부서의 설치 목적 및 기본 방침을 입력하세요."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>부서 목표</label>
+            <textarea id="editGoals" class="form-control" placeholder="이번 학기/연도 부서의 핵심 목표를 입력하세요."></textarea>
+        </div>
+
+        <div style="display: flex; gap: 15px;">
+            <div class="form-group" style="flex: 1;">
+                <label>부장</label>
+                <input type="text" id="editHead" class="form-control" placeholder="이름 입력 (예: 홍길동)">
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label>차장</label>
+                <input type="text" id="editVice" class="form-control" placeholder="이름 입력 (예: 김철수)">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>소속 부원</label>
+            <textarea id="editMembers" class="form-control" style="min-height: 80px;" placeholder="소속 부원 이름을 쉼표(,) 또는 줄바꿈으로 구분해 입력하세요."></textarea>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModal()">취소</button>
+            <button class="btn-submit" onclick="submitDeptInfo()" id="btnSubmit">저장하기</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // Firebase 설정
+    const firebaseConfig = {
+        apiKey: "AIzaSyCWPYuQeihfDgp5tVlrObBVRs2UZDlTkks",
+        authDomain: "hyeongsok-student-counci-e6115.firebaseapp.com",
+        projectId: "hyeongsok-student-counci-e6115",
+        storageBucket: "hyeongsok-student-counci-e6115.firebasestorage.app",
+        messagingSenderId: "847440892138",
+        appId: "1:847440892138:web:152021aaaf5f330b2d0793",
+        measurementId: "G-F40YFFMGWE"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    
+    // 부서 ID 설정 (학술문예부)
+    const DEPT_ID = "academic";
+    let currentUser = null;
+
+    window.onload = async () => {
+        checkAuth();
+        await loadDeptInfo();
+    };
+
+    // 권한 확인 (관리자 또는 해당 부서 소속인지 체크)
+    function checkAuth() {
+        const session = JSON.parse(localStorage.getItem('userSession'));
+        if (session) {
+            currentUser = session;
+            
+            // admin이거나 소속 부서가 academic 일 경우 수정 권한 부여
+            if (currentUser.role === 'admin' || currentUser.department === DEPT_ID) {
+                document.getElementById('btnEdit').style.display = 'block';
+            }
+        }
+    }
+
+    // Firebase에서 부서 정보 불러오기
+    async function loadDeptInfo() {
+        try {
+            const docRef = doc(db, "departments", DEPT_ID);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                
+                // 화면에 텍스트 적용
+                document.getElementById('viewPurpose').innerText = data.purpose || "등록된 목적이 없습니다.";
+                document.getElementById('viewGoals').innerText = data.goals || "등록된 목표가 없습니다.";
+                document.getElementById('viewHead').innerText = data.head || "-";
+                document.getElementById('viewVice').innerText = data.vice || "-";
+                document.getElementById('viewMembers').innerText = data.members || "-";
+
+                // 모달 폼에도 데이터 미리 세팅
+                document.getElementById('editPurpose').value = data.purpose || "";
+                document.getElementById('editGoals').value = data.goals || "";
+                document.getElementById('editHead').value = data.head || "";
+                document.getElementById('editVice').value = data.vice || "";
+                document.getElementById('editMembers').value = data.members || "";
+            } else {
+                document.getElementById('viewPurpose').innerText = "아직 등록된 정보가 없습니다.";
+                document.getElementById('viewGoals').innerText = "관리자나 소속 임원이 정보를 등록할 수 있습니다.";
+            }
+        } catch (error) {
+            console.error("정보 로드 에러:", error);
+            document.getElementById('viewPurpose').innerText = "데이터를 불러오는 중 오류가 발생했습니다.";
+        }
+    }
+
+    // 모달 열기
+    window.openEditModal = function() {
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    // 모달 닫기
+    window.closeModal = function() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    // Firebase에 정보 저장
+    window.submitDeptInfo = async function() {
+        const purpose = document.getElementById('editPurpose').value.trim();
+        const goals = document.getElementById('editGoals').value.trim();
+        const head = document.getElementById('editHead').value.trim();
+        const vice = document.getElementById('editVice').value.trim();
+        const members = document.getElementById('editMembers').value.trim();
+        const btnSubmit = document.getElementById('btnSubmit');
+
+        try {
+            btnSubmit.innerText = "저장 중...";
+            btnSubmit.disabled = true;
+
+            const docRef = doc(db, "departments", DEPT_ID);
+            
+            await setDoc(docRef, {
+                purpose: purpose,
+                goals: goals,
+                head: head,
+                vice: vice,
+                members: members,
+                updatedAt: new Date()
+            }, { merge: true });
+
+            alert("학술문예부 정보가 성공적으로 저장되었습니다.");
+            closeModal();
+            await loadDeptInfo();
+
+        } catch (error) {
+            console.error("저장 에러:", error);
+            alert("저장 중 오류가 발생했습니다: " + error.message);
+        } finally {
+            btnSubmit.innerText = "저장하기";
+            btnSubmit.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>
