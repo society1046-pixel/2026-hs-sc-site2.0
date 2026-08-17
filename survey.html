@@ -674,7 +674,14 @@
         const targetGrade = document.getElementById('targetGrade').value;
         const requireLogin = document.getElementById('requireLogin').value === 'true';
         const isAnonymous = document.getElementById('isAnonymous').value === 'true';
-        const linkUrl = document.getElementById('linkUrl').value.trim();
+        let linkUrl = document.getElementById('linkUrl').value.trim(); // const를 let으로 변경
+
+        // 외부 링크일 경우 http/https 확인 후 자동 추가
+        if (type === 'link' && linkUrl) {
+            if (!linkUrl.startsWith('http://') && !linkUrl.startsWith('https://')) {
+                linkUrl = 'https://' + linkUrl;
+            }
+        }
 
         if (!title) { alert("설문 제목을 입력해주세요."); return; }
 
@@ -756,7 +763,14 @@
                 currentUser.participatedSurveys.push(surveyId);
                 await updatePoints(10, "외부 설문 링크 참여 완료");
             }
-            window.open(survey.linkUrl, '_blank');
+            
+            // 프로토콜(http/https)이 없으면 자동으로 https:// 추가
+            let finalUrl = survey.linkUrl;
+            if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+                finalUrl = 'https://' + finalUrl;
+            }
+            
+            window.open(finalUrl, '_blank');
             renderPage(currentPage);
         } else {
             // 사이트 내부 설문조사
