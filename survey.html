@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hssc - 설문조사</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-color: #7BA4DB;
+            --bg-color: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --border-color: #EEEEEE;
+            --text-main: #333333;
+            --text-sub: #64748B;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Noto Sans KR', sans-serif; letter-spacing: -0.5px; }
+        body { background-color: var(--bg-color); color: var(--text-main); }
+        
+        main { max-width: 850px; margin: 40px auto; padding: 0 20px; }
+        
+        .board-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        }
+
+        .page-title { font-size: 24px; font-weight: 700; margin-bottom: 20px; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; }
+        
+        .user-point-badge {
+            font-size: 14px;
+            background: #EBF3FA;
+            color: #2563EB;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .board-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            display: flex;
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #DDD;
+            border-radius: 6px 0 0 6px;
+            outline: none;
+        }
+        
+        .search-box button {
+            padding: 10px 15px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0 6px 6px 0;
+            cursor: pointer;
+        }
+
+        .header-btn-group { display: flex; gap: 8px; }
+
+        .btn-write {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: #FFF;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn-admin-rank {
+            padding: 10px 16px;
+            background-color: #8B5CF6;
+            color: #FFF;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            display: none;
+        }
+
+        .survey-list { list-style: none; border-top: 2px solid var(--text-main); }
+        
+        .survey-item {
+            padding: 18px 15px;
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+        .survey-item:hover { background: #F1F5F9; }
+        
+        /* 이미 참여한 설문조사 블러 및 흐림 스타일 */
+        .survey-item.participated {
+            opacity: 0.55;
+            filter: blur(0.3px) grayscale(30%);
+            background-color: #F8FAFC;
+        }
+        .survey-item.participated:hover {
+            opacity: 0.8;
+            filter: none;
+        }
+
+        .survey-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .survey-title { font-size: 17px; font-weight: 600; cursor: pointer; }
+        .survey-title:hover { color: var(--primary-color); }
+        
+        .survey-badges { display: flex; gap: 6px; align-items: center; }
+        .badge { font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 600; text-transform: uppercase; }
+        .badge-link { background: #FEF3C7; color: #D97706; }
+        .badge-internal { background: #E0E7FF; color: #4338CA; }
+        .badge-grade { background: #F1F5F9; color: #475569; }
+        .badge-done { background: #E2E8F0; color: #64748B; }
+
+        .survey-meta { font-size: 13px; color: var(--text-sub); display: flex; justify-content: space-between; align-items: center; }
+        .survey-actions { display: flex; gap: 8px; margin-top: 10px; }
+
+        .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; font-weight: 500; }
+        .btn-sm-action { background: var(--primary-color); color: white; }
+        .btn-sm-disabled { background: #CBD5E1; color: white; cursor: not-allowed; }
+        .btn-sm-results { background: #10B981; color: white; }
+        .btn-sm-edit { background: #F59E0B; color: white; }
+        .btn-sm-delete { background: #EF4444; color: white; }
+
+        .pagination { display: flex; justify-content: center; margin-top: 30px; gap: 5px; }
+        .page-btn { padding: 5px 10px; border: 1px solid #DDD; background: white; cursor: pointer; border-radius: 4px; }
+        .page-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        /* 모달 스타일 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none; justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 12px;
+            width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 20px; border-bottom: 2px solid #F1F5F9; padding-bottom: 10px; }
+        
+        .form-group { margin-bottom: 18px; }
+        .form-group label { font-size: 14px; font-weight: 600; display: block; margin-bottom: 6px; color: var(--text-main); }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #DDD; border-radius: 6px; font-size: 14px; }
+        textarea.form-control { resize: vertical; min-height: 80px; }
+        .form-row { display: flex; gap: 15px; }
+        .form-row .form-group { flex: 1; }
+
+        /* 질문 빌더 스타일 */
+        .q-builder-card {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        .q-builder-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .q-remove-btn { color: #EF4444; cursor: pointer; font-size: 14px; }
+        
+        .option-item { display: flex; gap: 8px; margin-bottom: 6px; align-items: center; }
+        .btn-add-opt { background: #E2E8F0; border: none; padding: 4px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-top: 5px; }
+
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+        .btn-cancel { padding: 10px 20px; background: #94A3B8; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        .btn-submit { padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        
+        /* 응답 결과 및 관리자 순위 모달 테이블 */
+        .res-q-block { margin-bottom: 20px; padding: 15px; background: #F8FAFC; border-radius: 8px; border: 1px solid #E2E8F0; }
+        .res-q-title { font-weight: 700; font-size: 15px; margin-bottom: 10px; }
+        .res-choice-list { list-style: none; font-size: 14px; }
+        .res-choice-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #E2E8F0; }
+        .res-text-list { list-style: square; padding-left: 20px; font-size: 14px; max-height: 150px; overflow-y: auto; }
+
+        .rank-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .rank-table th, .rank-table td { padding: 10px; text-align: left; border-bottom: 1px solid #E2E8F0; }
+        .rank-table th { background: #F1F5F9; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+<script src="head.js"></script>
+
+<main>
+    <div class="board-container">
+        <div class="page-title">
+            <span><i class="fa-solid fa-square-poll-vertical" style="color: var(--primary-color);"></i> 설문조사</span>
+            <span class="user-point-badge" id="pointDisplay"><i class="fa-solid fa-coins"></i> 내 포인트: 0점</span>
+        </div>
+        
+        <div class="board-header">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="설문 제목 검색...">
+                <button onclick="searchSurvey()"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </div>
+            <div class="header-btn-group">
+                <button id="btnAdminRank" class="btn-admin-rank" onclick="openAdminRankModal()"><i class="fa-solid fa-trophy"></i> 전체 포인트 순위</button>
+                <button id="btnWrite" class="btn-write" onclick="openCreateModal()"><i class="fa-solid fa-plus"></i> 설문조사 개설</button>
+            </div>
+        </div>
+
+        <ul class="survey-list" id="surveyList"></ul>
+        <div class="pagination" id="pagination"></div>
+    </div>
+</main>
+
+<!-- 설문조사 개설 / 수정 모달 -->
+<div class="modal-overlay" id="createModal">
+    <div class="modal-content">
+        <h3 class="modal-title" id="createModalTitle">설문조사 개설</h3>
+        
+        <div class="form-group">
+            <label>설문 유형 선택</label>
+            <select id="surveyType" class="form-control" onchange="toggleSurveyTypeUI()">
+                <option value="internal">사이트 내부 설문조사 (개설: +100pt / 참여: +15pt)</option>
+                <option value="link">외부 링크 설문조사 (개설: +50pt / 참여: +10pt)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>설문 제목</label>
+            <input type="text" id="surveyTitle" class="form-control" placeholder="설문 제목을 입력하세요">
+        </div>
+
+        <div class="form-group">
+            <label>설문 설명</label>
+            <textarea id="surveyDesc" class="form-control" placeholder="설문 목적이나 참여 안내사항을 입력하세요"></textarea>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>대상 학년</label>
+                <select id="targetGrade" class="form-control">
+                    <option value="all">전체 학년</option>
+                    <option value="1">1학년만</option>
+                    <option value="2">2학년만</option>
+                    <option value="3">3학년만</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>로그인 요구 조건</label>
+                <select id="requireLogin" class="form-control">
+                    <option value="true">로그인 필수</option>
+                    <option value="false">비로그인 참여 가능</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>데이터 수집 방식</label>
+                <select id="isAnonymous" class="form-control">
+                    <option value="true">익명 제출</option>
+                    <option value="false">실명 제출 (이름/학번 수집)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 외부 링크 영역 -->
+        <div class="form-group" id="linkUrlGroup" style="display: none;">
+            <label>설문조사 링크 URL</label>
+            <input type="url" id="linkUrl" class="form-control" placeholder="https://forms.google.com/...">
+        </div>
+
+        <!-- 내부 설문 문항 빌더 영역 -->
+        <div id="questionsBuilderGroup">
+            <label style="font-weight:700; margin-bottom:10px; display:block;">설문 문항 작성</label>
+            <div id="questionsContainer"></div>
+            <button class="btn-add-opt" style="width:100%; padding:10px; font-weight:600;" onclick="addQuestionField()">
+                <i class="fa-solid fa-plus"></i> 질문 추가하기
+            </button>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModals()">취소</button>
+            <button class="btn-submit" onclick="saveSurvey()" id="btnSaveSurvey">설문조사 개설하기</button>
+        </div>
+    </div>
+</div>
+
+<!-- 사이트 내부 설문조사 참여 모달 -->
+<div class="modal-overlay" id="takeModal">
+    <div class="modal-content">
+        <h3 class="modal-title" id="takeTitle">설문 참여</h3>
+        <p id="takeDesc" style="font-size:14px; color:var(--text-sub); margin-bottom:20px;"></p>
+        
+        <form id="takeForm"></form>
+
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModals()">취소</button>
+            <button class="btn-submit" onclick="submitSurveyAnswers()">응답 제출하기</button>
+        </div>
+    </div>
+</div>
+
+<!-- 응답 결과 확인 모달 -->
+<div class="modal-overlay" id="resultsModal">
+    <div class="modal-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3 class="modal-title" id="resultsTitle" style="margin:0; border:none;">응답 결과</h3>
+            <button class="btn-sm btn-sm-results" onclick="downloadExcel()"><i class="fa-solid fa-file-excel"></i> 엑셀(CSV) 다운로드</button>
+        </div>
+        <p style="font-size:13px; color:var(--text-sub); margin-bottom:20px;" id="totalResponsesCount">총 응답 수: 0건</p>
+        
+        <div id="resultsContent"></div>
+
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModals()">닫기</button>
+        </div>
+    </div>
+</div>
+
+<!-- 관리자 전용 전체 학생 포인트 순위 모달 -->
+<div class="modal-overlay" id="adminRankModal">
+    <div class="modal-content">
+        <h3 class="modal-title"><i class="fa-solid fa-trophy" style="color:#F59E0B;"></i> 학생 포인트 순위 (관리자 전용)</h3>
+        <div id="adminRankContent" style="max-height: 400px; overflow-y: auto;"></div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModals()">닫기</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, getDoc, query, orderBy, serverTimestamp, doc, updateDoc, deleteDoc, where, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCWPYuQeihfDgp5tVlrObBVRs2UZDlTkks",
+        authDomain: "hyeongsok-student-counci-e6115.firebaseapp.com",
+        projectId: "hyeongsok-student-counci-e6115",
+        storageBucket: "hyeongsok-student-counci-e6115.firebasestorage.app",
+        messagingSenderId: "847440892138",
+        appId: "1:847440892138:web:152021aaaf5f330b2d0793",
+        measurementId: "G-F40YFFMGWE"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let allSurveys = [];
+    let filteredSurveys = [];
+    let currentPage = 1;
+    const itemsPerPage = 8;
+    let currentUser = null;
+    let editingSurveyId = null;
+    let activeSurveyForTake = null;
+    let activeSurveyForResults = null;
+    let activeResponsesData = [];
+
+    window.onload = async () => {
+        await loadUserSession();
+        await loadSurveys();
+    };
+
+    // 사용자 정보 및 포인트 DB와 동기화 (재로그인 시 포인트 유지)
+    async function loadUserSession() {
+        const session = JSON.parse(localStorage.getItem('userSession'));
+        if (session) {
+            currentUser = session;
+            
+            // Firestore에서 실시간 유저 정보(포인트, 참여 설문) 동기화
+            try {
+                const userRef = doc(db, "users", currentUser.id);
+                const userSnap = await getDoc(userRef);
+                
+                if (userSnap.exists()) {
+                    const uData = userSnap.data();
+                    currentUser.points = uData.points !== undefined ? uData.points : 0;
+                    currentUser.participatedSurveys = uData.participatedSurveys || [];
+                } else {
+                    // 최초 접속 유저일 경우 DB 생성
+                    currentUser.points = currentUser.points || 0;
+                    currentUser.participatedSurveys = currentUser.participatedSurveys || [];
+                    await setDoc(userRef, {
+                        name: currentUser.name || '',
+                        studentId: currentUser.studentId || currentUser.student_id || currentUser.id || '',
+                        points: currentUser.points,
+                        participatedSurveys: currentUser.participatedSurveys,
+                        role: currentUser.role || 'student'
+                    }, { merge: true });
+                }
+                localStorage.setItem('userSession', JSON.stringify(currentUser));
+            } catch(e) {
+                console.error("유저 데이터 동기화 에러:", e);
+            }
+
+            document.getElementById('pointDisplay').innerHTML = `<i class="fa-solid fa-coins"></i> 내 포인트: ${currentUser.points}점`;
+
+            // 관리자 계정 체크
+            if (currentUser.role === 'admin') {
+                document.getElementById('btnAdminRank').style.display = 'inline-block';
+            }
+        } else {
+            document.getElementById('pointDisplay').innerText = "비로그인 상태";
+        }
+    }
+
+    // 포인트 변동 및 DB 업데이트 함수
+    async function updatePoints(amount, reason) {
+        if (!currentUser) return;
+        
+        currentUser.points = Math.max(0, (currentUser.points || 0) + amount);
+        localStorage.setItem('userSession', JSON.stringify(currentUser));
+        document.getElementById('pointDisplay').innerHTML = `<i class="fa-solid fa-coins"></i> 내 포인트: ${currentUser.points}점`;
+
+        try {
+            const userRef = doc(db, "users", currentUser.id);
+            await updateDoc(userRef, {
+                points: currentUser.points,
+                participatedSurveys: currentUser.participatedSurveys || []
+            });
+        } catch(e) {
+            console.error("포인트 업데이트 에러:", e);
+        }
+
+        if (amount > 0) {
+            alert(`${reason} (+${amount} 포인트)`);
+        } else if (amount < 0) {
+            alert(`${reason} (${amount} 포인트 차감)`);
+        }
+    }
+
+    async function loadSurveys() {
+        try {
+            const q = query(collection(db, "surveys"), orderBy("createdAt", "desc"));
+            const querySnapshot = await getDocs(q);
+            allSurveys = [];
+            querySnapshot.forEach((docSnap) => {
+                let data = docSnap.data();
+                data.id = docSnap.id;
+                allSurveys.push(data);
+            });
+            filteredSurveys = [...allSurveys];
+            renderPage(1);
+        } catch (error) {
+            console.error("설문 로드 실패:", error);
+        }
+    }
+
+    window.renderPage = function(page) {
+        currentPage = page;
+        const listEl = document.getElementById('surveyList');
+        listEl.innerHTML = '';
+
+        const startIndex = (page - 1) * itemsPerPage;
+        const pageData = filteredSurveys.slice(startIndex, startIndex + itemsPerPage);
+
+        if (pageData.length === 0) {
+            listEl.innerHTML = '<li style="text-align:center; padding: 30px; color: #94A3B8;">등록된 설문조사가 없습니다.</li>';
+            renderPagination();
+            return;
+        }
+
+        pageData.forEach(item => {
+            const li = document.createElement('li');
+            
+            // 이미 참여한 설문조사인 경우 판단
+            const isParticipated = currentUser && currentUser.participatedSurveys && currentUser.participatedSurveys.includes(item.id);
+            const isAuthor = currentUser && currentUser.id === item.authorId;
+
+            li.className = `survey-item ${isParticipated ? 'participated' : ''}`;
+
+            const typeBadge = item.type === 'link' 
+                ? '<span class="badge badge-link">외부 링크 (+10pt)</span>' 
+                : '<span class="badge badge-internal">자체 설문 (+15pt)</span>';
+            
+            const gradeBadge = `<span class="badge badge-grade">${item.targetGrade === 'all' ? '전체 학년' : item.targetGrade + '학년 대상'}</span>`;
+            const doneBadge = isParticipated ? '<span class="badge badge-done">[참여완료]</span>' : '';
+
+            const isOwnerOrAdmin = currentUser && (currentUser.id === item.authorId || currentUser.role === 'admin');
+
+            li.innerHTML = `
+                <div class="survey-item-header">
+                    <div class="survey-title" onclick="handleSurveyClick('${item.id}')">${item.title}</div>
+                    <div class="survey-badges">
+                        ${doneBadge}
+                        ${typeBadge}
+                        ${gradeBadge}
+                    </div>
+                </div>
+                <div class="survey-meta">
+                    <span>작성자: ${item.authorName} ${isAuthor ? '(나)' : ''} | 수집: ${item.isAnonymous ? '익명' : '실명'}</span>
+                    <div class="survey-actions">
+                        <button class="btn-sm ${isParticipated || isAuthor ? 'btn-sm-disabled' : 'btn-sm-action'}" onclick="handleSurveyClick('${item.id}')">
+                            ${isAuthor ? '내 설문조사' : (isParticipated ? '참여 완료' : (item.type === 'link' ? '설문 링크 이동' : '설문 참여하기'))}
+                        </button>
+                        ${isOwnerOrAdmin ? `<button class="btn-sm btn-sm-results" onclick="viewResults('${item.id}')">응답 결과</button>` : ''}
+                        ${isOwnerOrAdmin ? `<button class="btn-sm btn-sm-edit" onclick="openEditModal('${item.id}')">수정</button>` : ''}
+                        ${isOwnerOrAdmin ? `<button class="btn-sm btn-sm-delete" onclick="deleteSurvey('${item.id}')">삭제</button>` : ''}
+                    </div>
+                </div>
+            `;
+            listEl.appendChild(li);
+        });
+
+        renderPagination();
+    }
+
+    function renderPagination() {
+        const paginationEl = document.getElementById('pagination');
+        paginationEl.innerHTML = '';
+        const totalPages = Math.ceil(filteredSurveys.length / itemsPerPage);
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+            btn.innerText = i;
+            btn.onclick = () => renderPage(i);
+            paginationEl.appendChild(btn);
+        }
+    }
+
+    window.searchSurvey = function() {
+        const keyword = document.getElementById('searchInput').value.toLowerCase();
+        filteredSurveys = allSurveys.filter(s => s.title.toLowerCase().includes(keyword) || s.description.toLowerCase().includes(keyword));
+        renderPage(1);
+    }
+
+    window.openCreateModal = function() {
+        if (!currentUser) {
+            alert("설문조사를 개설하려면 로그인이 필요합니다.");
+            location.href = "login.html";
+            return;
+        }
+        editingSurveyId = null;
+        document.getElementById('createModalTitle').innerText = '설문조사 개설';
+        document.getElementById('btnSaveSurvey').innerText = '설문조사 개설하기 (+포인트 적립)';
+        document.getElementById('surveyType').value = 'internal';
+        document.getElementById('surveyTitle').value = '';
+        document.getElementById('surveyDesc').value = '';
+        document.getElementById('linkUrl').value = '';
+        document.getElementById('questionsContainer').innerHTML = '';
+        
+        toggleSurveyTypeUI();
+        addQuestionField(); 
+        document.getElementById('createModal').style.display = 'flex';
+    }
+
+    window.toggleSurveyTypeUI = function() {
+        const type = document.getElementById('surveyType').value;
+        if (type === 'link') {
+            document.getElementById('linkUrlGroup').style.display = 'block';
+            document.getElementById('questionsBuilderGroup').style.display = 'none';
+        } else {
+            document.getElementById('linkUrlGroup').style.display = 'none';
+            document.getElementById('questionsBuilderGroup').style.display = 'block';
+        }
+    }
+
+    let qCounter = 0;
+    window.addQuestionField = function(qData = null) {
+        qCounter++;
+        const container = document.getElementById('questionsContainer');
+        const qDiv = document.createElement('div');
+        qDiv.className = 'q-builder-card';
+        qDiv.id = `qCard_${qCounter}`;
+
+        const qType = qData ? qData.qType : 'choice';
+        const qText = qData ? qData.questionText : '';
+
+        qDiv.innerHTML = `
+            <div class="q-builder-header">
+                <span style="font-weight:600; font-size:13px;">질문 문항</span>
+                <span class="q-remove-btn" onclick="document.getElementById('qCard_${qCounter}').remove()"><i class="fa-solid fa-trash"></i> 삭제</span>
+            </div>
+            <div class="form-row" style="margin-bottom:8px;">
+                <input type="text" class="form-control q-title-input" placeholder="질문 내용을 입력하세요" value="${qText}" style="flex:2;">
+                <select class="form-control q-type-select" onchange="toggleQuestionType(this)" style="flex:1;">
+                    <option value="choice" ${qType==='choice'?'selected':''}>객관식</option>
+                    <option value="text" ${qType==='text'?'selected':''}>주관식</option>
+                </select>
+            </div>
+            <div class="options-builder" style="${qType==='text'?'display:none;':''}">
+                <div class="options-list"></div>
+                <button class="btn-add-opt" onclick="addOptionField(this)"><i class="fa-solid fa-plus"></i> 보기 항목 추가</button>
+            </div>
+        `;
+        container.appendChild(qDiv);
+
+        const optsList = qDiv.querySelector('.options-list');
+        if (qData && qData.options && qData.options.length > 0) {
+            qData.options.forEach(opt => addOptionField(qDiv.querySelector('.btn-add-opt'), opt));
+        } else if (qType === 'choice') {
+            addOptionField(qDiv.querySelector('.btn-add-opt'), '옵션 1');
+            addOptionField(qDiv.querySelector('.btn-add-opt'), '옵션 2');
+        }
+    }
+
+    window.toggleQuestionType = function(selectEl) {
+        const builder = selectEl.closest('.q-builder-card').querySelector('.options-builder');
+        builder.style.display = selectEl.value === 'choice' ? 'block' : 'none';
+    }
+
+    window.addOptionField = function(btnEl, val = '') {
+        const optsList = btnEl.previousElementSibling;
+        const optDiv = document.createElement('div');
+        optDiv.className = 'option-item';
+        optDiv.innerHTML = `
+            <i class="fa-regular fa-circle" style="font-size:12px; color:#94A3B8;"></i>
+            <input type="text" class="form-control opt-input" placeholder="항목 내용" value="${val}">
+            <i class="fa-solid fa-xmark" style="color:#EF4444; cursor:pointer;" onclick="this.parentElement.remove()"></i>
+        `;
+        optsList.appendChild(optDiv);
+    }
+
+    window.saveSurvey = async function() {
+        const type = document.getElementById('surveyType').value;
+        const title = document.getElementById('surveyTitle').value.trim();
+        const description = document.getElementById('surveyDesc').value.trim();
+        const targetGrade = document.getElementById('targetGrade').value;
+        const requireLogin = document.getElementById('requireLogin').value === 'true';
+        const isAnonymous = document.getElementById('isAnonymous').value === 'true';
+        const linkUrl = document.getElementById('linkUrl').value.trim();
+
+        if (!title) { alert("설문 제목을 입력해주세요."); return; }
+
+        let questions = [];
+        if (type === 'internal') {
+            const qCards = document.querySelectorAll('.q-builder-card');
+            if (qCards.length === 0) { alert("하나 이상의 질문을 추가해주세요."); return; }
+
+            let isValid = true;
+            qCards.forEach((card, idx) => {
+                const qText = card.querySelector('.q-title-input').value.trim();
+                const qType = card.querySelector('.q-type-select').value;
+                if (!qText) isValid = false;
+
+                let options = [];
+                if (qType === 'choice') {
+                    const optInputs = card.querySelectorAll('.opt-input');
+                    optInputs.forEach(opt => { if (opt.value.trim()) options.push(opt.value.trim()); });
+                }
+                questions.push({ id: idx + 1, questionText: qText, qType: qType, options: options });
+            });
+            if (!isValid) { alert("모든 질문 내용을 작성해 주세요."); return; }
+        } else {
+            if (!linkUrl) { alert("설문조사 링크 URL을 입력해주세요."); return; }
+        }
+
+        const surveyData = {
+            title, description, type, targetGrade, requireLogin, isAnonymous, linkUrl, questions,
+            authorId: currentUser.id,
+            authorName: currentUser.name,
+            createdAt: serverTimestamp()
+        };
+
+        try {
+            if (editingSurveyId) {
+                await updateDoc(doc(db, "surveys", editingSurveyId), surveyData);
+                alert("설문조사가 수정되었습니다.");
+            } else {
+                await addDoc(collection(db, "surveys"), surveyData);
+                const rewardPoints = type === 'internal' ? 100 : 50;
+                await updatePoints(rewardPoints, "설문조사를 성공적으로 개설하였습니다");
+            }
+            closeModals();
+            await loadSurveys();
+        } catch (e) {
+            console.error("저장 오류:", e);
+            alert("저장 중 오류가 발생했습니다.");
+        }
+    }
+
+    window.handleSurveyClick = async function(surveyId) {
+        const survey = allSurveys.find(s => s.id === surveyId);
+        if (!survey) return;
+
+        // 자신이 개설한 설문조사 참여 불가 처리
+        if (currentUser && currentUser.id === survey.authorId) {
+            alert("본인이 개설한 설문조사에는 참여할 수 없습니다.");
+            return;
+        }
+
+        // 학년 대상 확인
+        if (survey.targetGrade !== 'all' && currentUser) {
+            if (String(currentUser.grade) !== String(survey.targetGrade)) {
+                alert(`본 설문조사는 ${survey.targetGrade}학년 대상 설문입니다.`);
+                return;
+            }
+        }
+
+        // 로그인 필수 확인
+        if (survey.requireLogin && !currentUser) {
+            alert("본 설문조사는 로그인이 필요합니다.");
+            location.href = "login.html";
+            return;
+        }
+
+        if (survey.type === 'link') {
+            // 외부 링크 설문조사
+            if (currentUser && !currentUser.participatedSurveys.includes(surveyId)) {
+                currentUser.participatedSurveys.push(surveyId);
+                await updatePoints(10, "외부 설문 링크 참여 완료");
+            }
+            window.open(survey.linkUrl, '_blank');
+            renderPage(currentPage);
+        } else {
+            // 사이트 내부 설문조사
+            if (currentUser && currentUser.participatedSurveys.includes(surveyId)) {
+                alert("이미 응답을 완료한 설문조사입니다.");
+                return;
+            }
+            openTakeModal(survey);
+        }
+    }
+
+    function openTakeModal(survey) {
+        activeSurveyForTake = survey;
+        document.getElementById('takeTitle').innerText = survey.title;
+        document.getElementById('takeDesc').innerText = survey.description;
+
+        const form = document.getElementById('takeForm');
+        form.innerHTML = '';
+
+        survey.questions.forEach((q, idx) => {
+            const qBox = document.createElement('div');
+            qBox.className = 'form-group';
+            qBox.style.marginBottom = '20px';
+
+            let inputHtml = '';
+            if (q.qType === 'choice') {
+                q.options.forEach((opt) => {
+                    inputHtml += `
+                        <div style="margin-top:6px;">
+                            <label style="font-weight:normal; cursor:pointer;">
+                                <input type="radio" name="q_${q.id}" value="${opt}"> ${opt}
+                            </label>
+                        </div>
+                    `;
+                });
+            } else {
+                inputHtml = `<textarea name="q_${q.id}" class="form-control" placeholder="답변을 작성하세요"></textarea>`;
+            }
+
+            qBox.innerHTML = `
+                <label style="font-weight:700;">${idx + 1}. ${q.questionText}</label>
+                ${inputHtml}
+            `;
+            form.appendChild(qBox);
+        });
+
+        document.getElementById('takeModal').style.display = 'flex';
+    }
+
+    window.submitSurveyAnswers = async function() {
+        if (!activeSurveyForTake) return;
+
+        const form = document.getElementById('takeForm');
+        const formData = new FormData(form);
+        let answers = {};
+        let allAnswered = true;
+
+        activeSurveyForTake.questions.forEach(q => {
+            const val = formData.get(`q_${q.id}`);
+            if (!val || !val.trim()) allAnswered = false;
+            answers[q.id] = val;
+        });
+
+        if (!allAnswered) {
+            alert("모든 질문에 답해 주시기 바랍니다.");
+            return;
+        }
+
+        // 학번 필드 매핑 강화
+        const studentIdVal = currentUser ? (currentUser.studentId || currentUser.student_id || currentUser.id || '') : '';
+
+        const responseDoc = {
+            surveyId: activeSurveyForTake.id,
+            userId: activeSurveyForTake.isAnonymous || !currentUser ? 'anonymous' : currentUser.id,
+            userName: activeSurveyForTake.isAnonymous || !currentUser ? '익명' : currentUser.name,
+            userStudentId: activeSurveyForTake.isAnonymous || !currentUser ? '' : studentIdVal,
+            answers: answers,
+            createdAt: serverTimestamp()
+        };
+
+        try {
+            await addDoc(collection(db, "survey_responses"), responseDoc);
+
+            if (currentUser) {
+                currentUser.participatedSurveys.push(activeSurveyForTake.id);
+                await updatePoints(15, "설문 응답 제출 완료");
+            } else {
+                alert("설문 응답이 정상적으로 제출되었습니다.");
+            }
+
+            closeModals();
+            await loadSurveys();
+        } catch (e) {
+            console.error("응답 제출 실패:", e);
+            alert("제출 중 오류가 발생했습니다.");
+        }
+    }
+
+    window.viewResults = async function(surveyId) {
+        const survey = allSurveys.find(s => s.id === surveyId);
+        if (!survey) return;
+        activeSurveyForResults = survey;
+
+        document.getElementById('resultsTitle').innerText = `[결과] ${survey.title}`;
+        const resultsContent = document.getElementById('resultsContent');
+        resultsContent.innerHTML = '로딩 중...';
+
+        try {
+            const q = query(collection(db, "survey_responses"), where("surveyId", "==", surveyId));
+            const querySnapshot = await getDocs(q);
+            
+            activeResponsesData = [];
+            querySnapshot.forEach(docSnap => activeResponsesData.push(docSnap.data()));
+
+            document.getElementById('totalResponsesCount').innerText = `총 응답 수: ${activeResponsesData.length}건`;
+
+            resultsContent.innerHTML = '';
+            if (activeResponsesData.length === 0) {
+                resultsContent.innerHTML = '<p style="text-align:center; padding:20px; color:#94A3B8;">아직 수집된 응답 데이터가 없습니다.</p>';
+            } else {
+                survey.questions.forEach((qItem, idx) => {
+                    const resBlock = document.createElement('div');
+                    resBlock.className = 'res-q-block';
+
+                    let contentInner = '';
+                    if (qItem.qType === 'choice') {
+                        let counts = {};
+                        qItem.options.forEach(opt => counts[opt] = 0);
+                        activeResponsesData.forEach(res => {
+                            const ans = res.answers[qItem.id];
+                            if (counts[ans] !== undefined) counts[ans]++;
+                        });
+
+                        contentInner += '<ul class="res-choice-list">';
+                        qItem.options.forEach(opt => {
+                            const cnt = counts[opt];
+                            const pct = activeResponsesData.length > 0 ? Math.round((cnt / activeResponsesData.length) * 100) : 0;
+                            contentInner += `
+                                <li class="res-choice-item">
+                                    <span>${opt}</span>
+                                    <b>${cnt}표 (${pct}%)</b>
+                                </li>
+                            `;
+                        });
+                        contentInner += '</ul>';
+                    } else {
+                        contentInner += '<ul class="res-text-list">';
+                        activeResponsesData.forEach(res => {
+                            const ansText = res.answers[qItem.id] || '(응답 없음)';
+                            const userInfoStr = survey.isAnonymous ? '' : ` (${res.userName} / ${res.userStudentId || '학번미기재'})`;
+                            contentInner += `<li>${ansText}${userInfoStr}</li>`;
+                        });
+                        contentInner += '</ul>';
+                    }
+
+                    resBlock.innerHTML = `
+                        <div class="res-q-title">${idx + 1}. ${qItem.questionText}</div>
+                        ${contentInner}
+                    `;
+                    resultsContent.appendChild(resBlock);
+                });
+            }
+
+            document.getElementById('resultsModal').style.display = 'flex';
+        } catch (e) {
+            console.error("응답 불러오기 실패:", e);
+            alert("데이터를 가져오는 중 오류가 발생했습니다.");
+        }
+    }
+
+    // 엑셀 다운로드 (학번 항목 정상 포함)
+    window.downloadExcel = function() {
+        if (!activeSurveyForResults || activeResponsesData.length === 0) {
+            alert("다운로드할 응답 데이터가 없습니다.");
+            return;
+        }
+
+        let csv = "\uFEFF"; // 한글 깨짐 방지 UTF-8 BOM
+        let headers = ["응답일시", "이름/익명", "학번"];
+        
+        if (activeSurveyForResults.questions) {
+            activeSurveyForResults.questions.forEach(q => headers.push(`"${q.questionText}"`));
+        }
+        csv += headers.join(",") + "\n";
+
+        activeResponsesData.forEach(res => {
+            let row = [
+                `"${res.createdAt ? new Date(res.createdAt.toDate()).toLocaleString() : ''}"`,
+                `"${res.userName || '익명'}"`,
+                `"${res.userStudentId || ''}"`
+            ];
+            if (activeSurveyForResults.questions) {
+                activeSurveyForResults.questions.forEach(q => {
+                    row.push(`"${(res.answers[q.id] || '').replace(/"/g, '""')}"`);
+                });
+            }
+            csv += row.join(",") + "\n";
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.setAttribute("download", `${activeSurveyForResults.title}_응답결과.csv`);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    // 관리자 전용 포인트 높은 순 목록 조회
+    window.openAdminRankModal = async function() {
+        const contentContainer = document.getElementById('adminRankContent');
+        contentContainer.innerHTML = '데이터 조회 중...';
+        document.getElementById('adminRankModal').style.display = 'flex';
+
+        try {
+            const q = query(collection(db, "users"), orderBy("points", "desc"));
+            const querySnapshot = await getDocs(q);
+            
+            let html = `
+                <table class="rank-table">
+                    <thead>
+                        <tr>
+                            <th>순위</th>
+                            <th>이름</th>
+                            <th>학번</th>
+                            <th>포인트</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            let rank = 1;
+            querySnapshot.forEach(docSnap => {
+                const u = docSnap.data();
+                html += `
+                    <tr>
+                        <td><b>${rank++}</b></td>
+                        <td>${u.name || '미설정'}</td>
+                        <td>${u.studentId || u.student_id || '-'}</td>
+                        <td><span style="color:#2563EB; font-weight:bold;">${u.points || 0} pt</span></td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            contentContainer.innerHTML = html;
+        } catch(e) {
+            console.error("포인트 순위 로드 실패:", e);
+            contentContainer.innerHTML = '<p style="color:#EF4444;">데이터를 불러오는 중 오류가 발생했습니다.</p>';
+        }
+    }
+
+    window.openEditModal = function(surveyId) {
+        const survey = allSurveys.find(s => s.id === surveyId);
+        if (!survey) return;
+
+        editingSurveyId = surveyId;
+        document.getElementById('createModalTitle').innerText = '설문조사 수정';
+        document.getElementById('btnSaveSurvey').innerText = '수정 완료';
+        document.getElementById('surveyType').value = survey.type;
+        document.getElementById('surveyTitle').value = survey.title;
+        document.getElementById('surveyDesc').value = survey.description;
+        document.getElementById('targetGrade').value = survey.targetGrade;
+        document.getElementById('requireLogin').value = String(survey.requireLogin);
+        document.getElementById('isAnonymous').value = String(survey.isAnonymous);
+        document.getElementById('linkUrl').value = survey.linkUrl || '';
+
+        toggleSurveyTypeUI();
+        document.getElementById('questionsContainer').innerHTML = '';
+        
+        if (survey.type === 'internal' && survey.questions) {
+            survey.questions.forEach(q => addQuestionField(q));
+        }
+
+        document.getElementById('createModal').style.display = 'flex';
+    }
+
+    // 설문 삭제 시 지급 포인트 소멸 로직 포함
+    window.deleteSurvey = async function(surveyId) {
+        const survey = allSurveys.find(s => s.id === surveyId);
+        if (!survey) return;
+
+        if (confirm("정말 이 설문조사를 삭제하시겠습니까? 개설로 지급받은 포인트가 차감되며, 모든 응답 데이터가 삭제됩니다.")) {
+            try {
+                await deleteDoc(doc(db, "surveys", surveyId));
+                
+                // 본인이 삭제했을 때 회수
+                if (currentUser && currentUser.id === survey.authorId) {
+                    const deductAmount = survey.type === 'internal' ? -100 : -50;
+                    await updatePoints(deductAmount, "설문조사 삭제로 인한 포인트 회수");
+                }
+
+                alert("삭제되었습니다.");
+                await loadSurveys();
+            } catch (e) {
+                console.error("삭제 실패:", e);
+                alert("삭제 중 오류가 발생했습니다.");
+            }
+        }
+    }
+
+    window.closeModals = function() {
+        document.getElementById('createModal').style.display = 'none';
+        document.getElementById('takeModal').style.display = 'none';
+        document.getElementById('resultsModal').style.display = 'none';
+        document.getElementById('adminRankModal').style.display = 'none';
+    }
+</script>
+
+</body>
+</html>
