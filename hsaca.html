@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>형석 탐구 아카이브 | 형석고등학교</title>
+    
+    <!-- Google Fonts: Noto Sans KR -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome 6 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#7BA4DB',
+                        bg: '#F8FAFC',
+                        card: '#FFFFFF',
+                        border: '#EEEEEE',
+                        'text-main': '#333333',
+                        'text-sub': '#64748B',
+                    },
+                    boxShadow: {
+                        'card': '0 4px 20px rgba(0,0,0,0.02)',
+                        'dropdown': '0 10px 25px rgba(0,0,0,0.1)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --primary-color: #7BA4DB;
+            --bg-color: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --border-color: #EEEEEE;
+            --text-main: #333333;
+            --text-sub: #64748B;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            letter-spacing: -0.5px;
+            overflow-x: hidden;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* 아카이브 리스트 아이템 스타일 */
+        .archive-item {
+            transition: all 0.2s ease;
+        }
+        .archive-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border-color: var(--primary-color);
+        }
+
+        /* 카테고리 뱃지 */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-과학탐구 { background: #E0F2FE; color: #0284C7; }
+        .badge-인문사회 { background: #FEF3C7; color: #D97706; }
+        .badge-사회탐구 { background: #DCFCE7; color: #16A34A; }
+        .badge-예체능 { background: #F3E8FF; color: #9333EA; }
+        .badge-기타 { background: #F1F5F9; color: #475569; }
+
+        /* 모달 배경 스타일 */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(2px);
+        }
+        
+        /* 로딩 스피너 애니메이션 */
+        .fa-spin { animation: fa-spin 1s infinite linear; }
+        @keyframes fa-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+
+    <!-- 🌟 공통 헤더 (head.js) 🌟 -->
+    <script src="head.js"></script>
+</head>
+
+<body class="bg-bg text-text-main flex flex-col min-h-screen">
+
+    <!-- 메인 컨텐츠 -->
+    <main class="max-w-[900px] w-full mx-auto px-5 my-10 flex-grow mt-8" id="main-content" style="display: none;">
+        
+        <section class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-text-main"><i class="fa-solid fa-book-open text-primary mr-2"></i>형석 탐구 아카이브</h1>
+                <p class="text-sm text-text-sub mt-2">학생들의 학술 연구 및 탐구 보고서를 열람하고 등록할 수 있습니다.</p>
+            </div>
+            
+            <button onclick="openWriteModal()" class="px-5 py-2.5 bg-primary text-white rounded-md text-sm font-medium hover:bg-blue-500 transition-colors shadow-sm flex items-center gap-2">
+                <i class="fa-solid fa-pen"></i> 보고서 등록
+            </button>
+        </section>
+
+        <!-- 필터 및 검색바 -->
+        <section class="bg-card rounded-xl shadow-card border border-border p-4 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+            <select id="category-filter" onchange="filterAndSearch()" class="w-full md:w-48 bg-bg border border-border text-text-main rounded-md px-4 py-2.5 text-sm focus:outline-none focus:border-primary transition-colors cursor-pointer">
+                <option value="all">전체 분야</option>
+                <option value="과학탐구">과학탐구</option>
+                <option value="인문사회">인문사회</option>
+                <option value="사회탐구">사회탐구</option>
+                <option value="예체능">예체능</option>
+                <option value="기타">기타</option>
+            </select>
+
+            <div class="flex w-full md:w-auto relative">
+                <input type="text" id="search-input" placeholder="제목, 작성자, 내용 검색" class="w-full md:w-72 bg-bg border border-border text-text-main rounded-l-md px-4 py-2.5 text-sm focus:outline-none focus:border-primary transition-colors">
+                <button onclick="filterAndSearch()" class="px-5 bg-primary text-white rounded-r-md hover:bg-blue-500 transition-colors">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- 아카이브 리스트 -->
+        <div id="archive-list" class="flex flex-col gap-4">
+            <!-- JS로 데이터 렌더링 -->
+        </div>
+
+        <!-- 페이징 -->
+        <div id="pagination" class="flex justify-center mt-10 gap-2">
+            <!-- JS로 페이징 버튼 렌더링 -->
+        </div>
+
+    </main>
+
+    <!-- 푸터 -->
+    <footer class="bg-card border-t border-border mt-auto py-6">
+        <div class="max-w-[900px] mx-auto px-5 text-center text-sm text-text-sub">
+            <p>&copy; 2026 형석고등학교 학술문예부. All rights reserved.</p>
+        </div>
+    </footer>
+
+
+    <!-- 📝 보고서 등록 모달 -->
+    <div id="write-modal" class="fixed inset-0 z-[100] hidden items-center justify-center modal-overlay opacity-0 transition-opacity duration-300">
+        <div class="bg-card w-full max-w-2xl mx-4 rounded-xl shadow-dropdown p-6 md:p-8 transform scale-95 transition-transform duration-300 border border-border max-h-[90vh] overflow-y-auto" id="write-modal-content">
+            
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-text-main">새 탐구 보고서 등록</h2>
+                <button onclick="closeWriteModal()" class="text-text-sub hover:text-red-500 transition-colors text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <!-- 카테고리 선택 -->
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-1">탐구 분야 <span class="text-red-500">*</span></label>
+                    <select id="write-category" class="w-full bg-bg border border-border text-text-main rounded-md px-4 py-2.5 text-sm focus:outline-none focus:border-primary transition-colors">
+                        <option value="과학탐구">과학탐구</option>
+                        <option value="인문사회">인문사회</option>
+                        <option value="사회탐구">사회탐구</option>
+                        <option value="예체능">예체능</option>
+                        <option value="기타">기타</option>
+                    </select>
+                </div>
+
+                <!-- 제목 -->
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-1">보고서 제목 <span class="text-red-500">*</span></label>
+                    <input type="text" id="write-title" placeholder="보고서의 핵심 주제가 잘 드러나게 작성해주세요." class="w-full bg-bg border border-border text-text-main rounded-md px-4 py-2.5 text-sm focus:outline-none focus:border-primary transition-colors">
+                </div>
+
+                <!-- 내용/초록 -->
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-1">연구 요약 (초록) <span class="text-red-500">*</span></label>
+                    <textarea id="write-summary" placeholder="탐구 동기, 과정, 결과 및 느낀점을 간단히 요약해주세요." class="w-full bg-bg border border-border text-text-main rounded-md px-4 py-2.5 text-sm focus:outline-none focus:border-primary transition-colors min-h-[150px] resize-y"></textarea>
+                </div>
+
+                <!-- 파일 첨부 -->
+                <div>
+                    <label class="block text-sm font-medium text-text-main mb-1">파일 첨부 <span class="text-red-500">*</span> (PDF, HWP, 10MB 이하)</label>
+                    <input type="file" id="write-file" accept=".pdf, .hwp" onchange="handleFileChange()" class="w-full bg-bg border border-border text-text-sub rounded-md px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-blue-500 cursor-pointer">
+                    <p id="file-info" class="text-xs text-primary mt-2 font-medium"></p>
+                </div>
+            </div>
+
+            <!-- 하단 액션 버튼 -->
+            <div class="pt-6 mt-6 border-t border-border flex items-center justify-end gap-2">
+                <button onclick="closeWriteModal()" class="px-5 py-2.5 bg-bg border border-border text-text-main rounded-md text-sm font-medium hover:bg-gray-200 transition-colors">
+                    취소
+                </button>
+                <button id="btn-submit" onclick="submitArchive()" class="px-5 py-2.5 bg-primary text-white rounded-md text-sm font-medium hover:bg-blue-500 transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> 등록하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 🔍 보고서 상세 보기 모달 -->
+    <div id="view-modal" class="fixed inset-0 z-[100] hidden items-center justify-center modal-overlay opacity-0 transition-opacity duration-300">
+        <div class="bg-card w-full max-w-2xl mx-4 rounded-xl shadow-dropdown p-6 md:p-8 transform scale-95 transition-transform duration-300 border border-border max-h-[90vh] flex flex-col" id="view-modal-content">
+            
+            <div class="flex justify-between items-start mb-4">
+                <span id="view-category" class="badge">카테고리</span>
+                <button onclick="closeViewModal()" class="text-text-sub hover:text-red-500 transition-colors text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <h2 id="view-title" class="text-xl md:text-2xl font-bold text-text-main mb-2">보고서 제목</h2>
+            
+            <div class="flex items-center gap-4 text-sm text-text-sub pb-4 border-b border-border mb-4">
+                <span><i class="fa-regular fa-user mr-1"></i> <span id="view-author">작성자</span></span>
+                <span id="view-author-id" class="hidden"></span>
+                <span><i class="fa-regular fa-calendar mr-1"></i> <span id="view-date">날짜</span></span>
+            </div>
+
+            <div class="flex-grow overflow-y-auto pr-2 mb-6">
+                <h3 class="font-bold text-text-main mb-2 text-sm"><i class="fa-solid fa-align-left text-primary mr-1"></i> 연구 요약 (초록)</h3>
+                <p id="view-summary" class="text-text-main text-sm leading-relaxed whitespace-pre-wrap p-4 bg-bg rounded-lg border border-border min-h-[120px]"></p>
+                
+                <!-- 파일 다운로드 영역 -->
+                <div id="view-file-area" class="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-between hidden">
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <i id="view-file-icon" class="fa-solid fa-file-pdf text-red-400 text-2xl"></i>
+                        <div class="flex flex-col">
+                            <span class="text-xs text-text-sub font-bold mb-0.5">첨부문서</span>
+                            <span id="view-file-name" class="text-sm font-medium text-text-main truncate">파일이름.pdf</span>
+                        </div>
+                    </div>
+                    <a id="view-file-link" href="#" target="_blank" download class="px-4 py-2 bg-white border border-blue-200 text-primary rounded-md text-sm font-bold hover:bg-blue-500 hover:text-white transition-colors flex items-center gap-2 whitespace-nowrap">
+                        <i class="fa-solid fa-download"></i> 다운로드
+                    </a>
+                </div>
+            </div>
+
+            <!-- 하단 액션 버튼 (삭제) -->
+            <div class="pt-4 border-t border-border flex items-center justify-end gap-2">
+                <button id="btn-delete" onclick="deleteArchive()" class="hidden px-5 py-2.5 bg-red-50 text-red-500 border border-red-200 rounded-md text-sm font-medium hover:bg-red-500 hover:text-white transition-colors">
+                    <i class="fa-regular fa-trash-can mr-1"></i> 삭제
+                </button>
+                <button onclick="closeViewModal()" class="px-5 py-2.5 bg-bg border border-border text-text-main rounded-md text-sm font-medium hover:bg-gray-200 transition-colors">
+                    닫기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase DB 연동 스크립트 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Firebase 설정
+        const firebaseConfig = {
+            apiKey: "AIzaSyCWPYuQeihfDgp5tVlrObBVRs2UZDlTkks",
+            authDomain: "hyeongsok-student-counci-e6115.firebaseapp.com",
+            projectId: "hyeongsok-student-counci-e6115",
+            storageBucket: "hyeongsok-student-counci-e6115.firebasestorage.app",
+            messagingSenderId: "847440892138",
+            appId: "1:847440892138:web:152021aaaf5f330b2d0793",
+            measurementId: "G-F40YFFMGWE"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let allArchives = []; 
+        let filteredArchives = []; 
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let currentUser = null;
+        let currentViewItem = null;
+
+        window.onload = async () => {
+            // 1. 로그인 권한 체크
+            if (!checkAuth()) return; // 권한 없으면 아래 로직 실행 안함
+            
+            // 2. 화면 노출
+            document.getElementById('main-content').style.display = 'block';
+
+            // 3. 데이터 로드
+            await loadArchives();
+            
+            // 엔터키 검색 지원
+            document.getElementById('search-input').addEventListener('keyup', (e) => {
+                if(e.key === 'Enter') filterAndSearch();
+            });
+        };
+
+        // 권한 체크: 로그인하지 않은 사용자는 튕겨냅니다.
+        function checkAuth() {
+            const session = JSON.parse(localStorage.getItem('userSession'));
+            if (!session) {
+                alert("형석 탐구 아카이브는 로그인 후 이용할 수 있습니다.");
+                window.location.href = 'login.html'; // 로그인 페이지로 리다이렉트 (실제 로그인 페이지 파일명에 맞게 수정)
+                return false;
+            }
+            currentUser = session;
+            return true;
+        }
+
+        // 삭제 권한 확인 (본인 또는 관리자/선생님)
+        function isOwnerOrAdmin(item) {
+            if (!currentUser || !item) return false;
+            return currentUser.id === item.authorId || currentUser.role === 'admin' || currentUser.role === 'teacher';
+        }
+
+        // DB에서 아카이브 데이터 불러오기
+        async function loadArchives() {
+            try {
+                const q = query(collection(db, "archives"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                allArchives = [];
+                querySnapshot.forEach((docSnap) => {
+                    let data = docSnap.data();
+                    data.id = docSnap.id;
+                    
+                    if (data.createdAt) {
+                        const date = data.createdAt.toDate();
+                        data.dateStr = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+                    } else {
+                        data.dateStr = "방금 전";
+                    }
+                    allArchives.push(data);
+                });
+                
+                filteredArchives = [...allArchives];
+                renderPage(1);
+            } catch (error) {
+                console.error("데이터 로드 에러:", error);
+                document.getElementById('archive-list').innerHTML = `
+                    <div class="text-center py-10 text-red-500 font-medium">데이터를 불러오는 중 오류가 발생했습니다.</div>
+                `;
+            }
+        }
+
+        // 필터 및 검색
+        window.filterAndSearch = function() {
+            const category = document.getElementById('category-filter').value;
+            const keyword = document.getElementById('search-input').value.toLowerCase();
+            
+            filteredArchives = allArchives.filter(item => {
+                const matchCategory = category === 'all' || item.category === category;
+                const matchKeyword = (item.title && item.title.toLowerCase().includes(keyword)) || 
+                                     (item.authorName && item.authorName.toLowerCase().includes(keyword)) ||
+                                     (item.summary && item.summary.toLowerCase().includes(keyword));
+                return matchCategory && matchKeyword;
+            });
+            
+            renderPage(1);
+        }
+
+        // 화면 렌더링
+        window.renderPage = function(page) {
+            currentPage = page;
+            const listEl = document.getElementById('archive-list');
+            listEl.innerHTML = '';
+
+            const startIndex = (page - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = filteredArchives.slice(startIndex, endIndex);
+
+            if (pageData.length === 0) {
+                listEl.innerHTML = '<div class="bg-card border border-border rounded-xl p-10 text-center text-text-sub">등록된 탐구 보고서가 없습니다.</div>';
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+
+            pageData.forEach(item => {
+                const badgeClass = `badge badge-${item.category || '기타'}`;
+                const fileExt = item.fileName ? item.fileName.split('.').pop().toLowerCase() : '';
+                const fileIconClass = fileExt === 'hwp' ? 'fa-file-word text-blue-400' : 'fa-file-pdf text-red-400';
+                
+                const div = document.createElement('div');
+                div.className = 'archive-item bg-card border border-border rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 cursor-pointer';
+                div.onclick = () => openViewModal(item);
+                
+                div.innerHTML = `
+                    <div class="flex items-start md:items-center gap-4 flex-grow overflow-hidden">
+                        <div class="hidden md:block">
+                            <i class="fa-solid ${fileIconClass} text-3xl opacity-80"></i>
+                        </div>
+                        <div class="flex flex-col gap-1 w-full">
+                            <div class="flex items-center gap-2">
+                                <span class="${badgeClass}">${item.category || '미분류'}</span>
+                                <h3 class="font-bold text-text-main text-base truncate pr-2">${item.title}</h3>
+                            </div>
+                            <p class="text-sm text-text-sub truncate mt-1">${item.summary || '요약이 없습니다.'}</p>
+                        </div>
+                    </div>
+                    <div class="flex md:flex-col items-center md:items-end justify-between md:justify-center text-xs text-text-sub min-w-[100px] border-t md:border-t-0 pt-3 md:pt-0 border-border">
+                        <span class="font-medium text-text-main"><i class="fa-regular fa-user mr-1"></i>${item.authorName}</span>
+                        <span class="mt-1">${item.dateStr}</span>
+                    </div>
+                `;
+                listEl.appendChild(div);
+            });
+
+            renderPagination();
+        }
+
+        // 페이지네이션 렌더링
+        function renderPagination() {
+            const paginationEl = document.getElementById('pagination');
+            paginationEl.innerHTML = '';
+            
+            const totalPages = Math.ceil(filteredArchives.length / itemsPerPage);
+            if(totalPages <= 1) return;
+            
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.className = `w-8 h-8 flex items-center justify-center rounded-md border text-sm font-medium transition-colors ${i === currentPage ? 'bg-primary text-white border-primary' : 'bg-card text-text-main border-border hover:bg-gray-50'}`;
+                btn.innerText = i;
+                btn.onclick = () => renderPage(i);
+                paginationEl.appendChild(btn);
+            }
+        }
+
+        // ================= 모달 및 파일 관련 로직 =================
+
+        // 파일 선택 시 용량/확장자 체크
+        window.handleFileChange = function() {
+            const fileInput = document.getElementById('write-file');
+            const fileInfo = document.getElementById('file-info');
+            
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const maxSize = 10 * 1024 * 1024; // 10MB
+                
+                // 확장자 체크
+                const allowedExts = ['pdf', 'hwp'];
+                const fileExt = file.name.split('.').pop().toLowerCase();
+                if (!allowedExts.includes(fileExt)) {
+                    alert("PDF 또는 HWP 파일만 업로드 가능합니다.");
+                    fileInput.value = ""; 
+                    fileInfo.innerText = "";
+                    return;
+                }
+
+                if (file.size > maxSize) {
+                    alert("파일 크기는 10MB를 초과할 수 없습니다.");
+                    fileInput.value = ""; 
+                    fileInfo.innerText = "";
+                    return;
+                }
+                
+                let sizeStr = (file.size / (1024 * 1024)).toFixed(2) + " MB";
+                fileInfo.innerHTML = `<i class="fa-solid fa-check mr-1"></i> 선택된 파일: ${file.name} (${sizeStr})`;
+            } else {
+                fileInfo.innerText = "";
+            }
+        }
+
+        // 등록 모달 열기
+        window.openWriteModal = function() {
+            // 초기화
+            document.getElementById('write-category').value = '과학탐구';
+            document.getElementById('write-title').value = '';
+            document.getElementById('write-summary').value = '';
+            document.getElementById('write-file').value = '';
+            document.getElementById('file-info').innerText = '';
+            
+            const modal = document.getElementById('write-modal');
+            const modalContent = document.getElementById('write-modal-content');
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        // 등록 모달 닫기
+        window.closeWriteModal = function() {
+            const modal = document.getElementById('write-modal');
+            const modalContent = document.getElementById('write-modal-content');
+            
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        // 클라우디너리 업로드 함수
+        async function uploadToCloudinary(file) {
+            const url = 'https://api.cloudinary.com/v1_1/dswystlen/auto/upload';
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', 'hssc2site');
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error?.message || '업로드 실패');
+                return data.secure_url;
+            } catch (error) {
+                console.error("클라우디너리 업로드 에러:", error);
+                throw error;
+            }
+        }
+
+        // 보고서 DB 저장
+        window.submitArchive = async function() {
+            const category = document.getElementById('write-category').value;
+            const title = document.getElementById('write-title').value.trim();
+            const summary = document.getElementById('write-summary').value.trim();
+            const fileInput = document.getElementById('write-file');
+            const btnSubmit = document.getElementById('btn-submit');
+
+            if (!title) return alert("보고서 제목을 입력해주세요.");
+            if (!summary) return alert("연구 요약을 입력해주세요.");
+            if (fileInput.files.length === 0) return alert("보고서 파일(PDF 또는 HWP)을 첨부해주세요.");
+
+            try {
+                btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 업로드 중...';
+                btnSubmit.disabled = true;
+                btnSubmit.classList.add('opacity-75', 'cursor-not-allowed');
+
+                const file = fileInput.files[0];
+                const fileUrl = await uploadToCloudinary(file);
+
+                await addDoc(collection(db, "archives"), {
+                    category: category,
+                    title: title,
+                    summary: summary,
+                    authorId: currentUser.id,
+                    authorName: currentUser.name,
+                    createdAt: serverTimestamp(),
+                    fileUrl: fileUrl,
+                    fileName: file.name,
+                    fileType: file.type
+                });
+
+                alert("보고서가 성공적으로 등록되었습니다!");
+                closeWriteModal();
+                await loadArchives(); // 리스트 갱신
+                
+            } catch (error) {
+                console.error("저장 에러:", error);
+                alert("업로드 중 오류가 발생했습니다: " + error.message);
+            } finally {
+                btnSubmit.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> 등록하기';
+                btnSubmit.disabled = false;
+                btnSubmit.classList.remove('opacity-75', 'cursor-not-allowed');
+            }
+        }
+
+        // 상세보기 모달 열기
+        window.openViewModal = function(item) {
+            currentViewItem = item;
+            
+            document.getElementById('view-category').className = `badge badge-${item.category || '기타'}`;
+            document.getElementById('view-category').innerText = item.category || '미분류';
+            
+            document.getElementById('view-title').innerText = item.title;
+            document.getElementById('view-author').innerText = item.authorName;
+            
+            const idSpan = document.getElementById('view-author-id');
+            if(item.authorId && item.authorName !== '익명') {
+                idSpan.innerText = `(${item.authorId})`;
+                idSpan.classList.remove('hidden');
+            } else {
+                idSpan.classList.add('hidden');
+            }
+
+            document.getElementById('view-date').innerText = item.dateStr;
+            document.getElementById('view-summary').innerText = item.summary || '내용 없음';
+            
+            const fileArea = document.getElementById('view-file-area');
+            if (item.fileUrl) {
+                fileArea.classList.remove('hidden');
+                document.getElementById('view-file-name').innerText = item.fileName || '첨부파일';
+                document.getElementById('view-file-link').href = item.fileUrl;
+                
+                const fileExt = item.fileName ? item.fileName.split('.').pop().toLowerCase() : '';
+                const iconEl = document.getElementById('view-file-icon');
+                if(fileExt === 'hwp') {
+                    iconEl.className = 'fa-solid fa-file-word text-blue-400 text-2xl';
+                } else {
+                    iconEl.className = 'fa-solid fa-file-pdf text-red-400 text-2xl';
+                }
+            } else {
+                fileArea.classList.add('hidden');
+            }
+
+            const deleteBtn = document.getElementById('btn-delete');
+            if (isOwnerOrAdmin(item)) {
+                deleteBtn.classList.remove('hidden');
+            } else {
+                deleteBtn.classList.add('hidden');
+            }
+
+            const modal = document.getElementById('view-modal');
+            const modalContent = document.getElementById('view-modal-content');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        // 상세보기 모달 닫기
+        window.closeViewModal = function() {
+            const modal = document.getElementById('view-modal');
+            const modalContent = document.getElementById('view-modal-content');
+            
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        // 데이터 삭제
+        window.deleteArchive = async function() {
+            if (!currentViewItem) return;
+            
+            if (!isOwnerOrAdmin(currentViewItem)) {
+                alert("삭제 권한이 없습니다.");
+                return;
+            }
+            
+            if (confirm("정말 이 보고서를 삭제하시겠습니까?\n삭제 후에는 복구할 수 없습니다.")) {
+                try {
+                    await deleteDoc(doc(db, "archives", currentViewItem.id));
+                    alert("성공적으로 삭제되었습니다.");
+                    closeViewModal();
+                    await loadArchives();
+                } catch (error) {
+                    console.error("삭제 중 오류:", error);
+                    alert("삭제 중 오류가 발생했습니다.");
+                }
+            }
+        }
+    </script>
+</body>
+</html>
