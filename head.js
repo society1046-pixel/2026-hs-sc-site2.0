@@ -401,7 +401,6 @@ const headerHTML = `
                 <a href="#">문화소통부 <i class="fa-solid fa-chevron-down"></i></a>
                 <div class="dropdown-content">
                     <a href="culinfo.html">부서 정보</a>
-                    <a href="hsaca.html">학술 아카이브</a>
                 </div>
             </div>
             <div class="nav-item">
@@ -414,6 +413,7 @@ const headerHTML = `
                 <a href="#">학술문예부 <i class="fa-solid fa-chevron-down"></i></a>
                 <div class="dropdown-content">
                     <a href="stuinfo.html">부서 정보</a>
+                    <a href="hsaca.html">학술 아카이브</a>
                 </div>
             </div>
             <div class="nav-item">
@@ -494,7 +494,6 @@ const headerHTML = `
             <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">문화소통부 <i class="fa-solid fa-chevron-down"></i></div>
             <div class="mobile-dropdown-content">
                 <a href="culinfo.html" onclick="closeSidebar()">부서 정보</a>
-                <a href="hsaca.html" onclick="closeSidebar()">학술 아카이브</a>
             </div>
         </div>
         <div class="mobile-nav-item">
@@ -507,6 +506,7 @@ const headerHTML = `
             <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">학술문예부 <i class="fa-solid fa-chevron-down"></i></div>
             <div class="mobile-dropdown-content">
                 <a href="stuinfo.html" onclick="closeSidebar()">부서 정보</a>
+                <a href="hsaca.html" onclick="closeSidebar()">학술 아카이브</a>
             </div>
         </div>
         <div class="mobile-nav-item">
