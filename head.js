@@ -428,7 +428,7 @@ const headerHTML = `
                 <a href="#" style="padding-left: 5px;"><i class="fa-solid fa-ellipsis no-rotate" style="font-size: 18px;"></i></a>
                 <div class="dropdown-content" style="min-width: 130px;">
                     <span class="dropdown-subheader">기타</span>
-                    <a href="#">사이트 정보</a>
+                    <a href="baseinfo.html">사이트 정보</a>
                 </div>
             </div>
         </nav>
@@ -519,7 +519,7 @@ const headerHTML = `
         <div class="mobile-nav-item">
             <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">기타 <i class="fa-solid fa-chevron-down"></i></div>
             <div class="mobile-dropdown-content">
-                <a href="#" onclick="closeSidebar()">사이트 정보</a>
+                <a href="baseinfo.html" onclick="closeSidebar()">사이트 정보</a>
             </div>
         </div>
     </nav>
