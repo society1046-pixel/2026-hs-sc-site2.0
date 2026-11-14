@@ -1,0 +1,2462 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>형석프리북스 | 형석고등학교 학술 문예부</title>
+
+  <!-- 1. 공통 레이아웃 스크립트 (사이트 GNB, 헤더, 로그인 상태 표시 동적 삽입) -->
+  <script>
+const headerHTML = `
+<style>
+    /* 공통 헤더 및 네비게이션 바 스타일 */
+    header {
+        position: sticky;
+        top: 0;
+        width: 100%;
+        background-color: #FFFFFF;
+        border-bottom: 1px solid #F5F5F5;
+        z-index: 1000;
+    }
+    /* 원래 디자인 유지: max-width 1200px 복구 */
+    .nav-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        flex-shrink: 0;
+    }
+    .nav-left img {
+        height: 40px;
+        width: auto;
+        object-fit: contain;
+    }
+    .nav-left .logo-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #111111;
+        letter-spacing: -0.5px;
+        white-space: nowrap;
+    }
+    
+    /* 원래 디자인 유지: nav-center 기본 배치 복구 */
+    .nav-center {
+        display: flex;
+        gap: 15px; 
+        height: 100%;
+    }
+    .nav-item {
+        position: relative;
+        display: flex;
+        align-items: center;
+        height: 100%;
+    }
+    .nav-item > a {
+        font-size: 15px;
+        font-weight: 500;
+        color: #666666;
+        transition: color 0.2s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+    }
+    .nav-item > a i {
+        font-size: 12px;
+        transition: transform 0.2s ease;
+    }
+    .nav-item:hover > a {
+        color: #7BA4DB;
+    }
+    .nav-item:hover > a i {
+        transform: rotate(180deg);
+    }
+    
+    .nav-item:hover > a i.no-rotate {
+        transform: none;
+    }
+
+    .dropdown-content {
+        position: absolute;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #FFFFFF;
+        min-width: 120px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        border-radius: 8px;
+        border: 1px solid #EEEEEE;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        padding: 10px 0;
+        z-index: 1001;
+    }
+    .nav-item:hover .dropdown-content {
+        opacity: 1;
+        visibility: visible;
+        top: 75px;
+    }
+    
+    .dropdown-subheader {
+        display: block;
+        padding: 12px 20px 4px 20px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #333333;
+        background-color: #F8FAFC;
+        cursor: default;
+        text-align: center;
+        margin-top: 5px;
+        border-top: 1px solid #F0F0F0;
+    }
+    .dropdown-subheader:first-child {
+        margin-top: 0;
+        border-top: none;
+    }
+
+    .dropdown-content a {
+        color: #555555;
+        padding: 10px 20px;
+        font-size: 14px;
+        text-decoration: none;
+        font-weight: 400;
+        text-align: center;
+        transition: background-color 0.2s, color 0.2s;
+        white-space: nowrap;
+    }
+    .dropdown-content a:hover {
+        background-color: #F8FAFC;
+        color: #7BA4DB;
+        font-weight: 500;
+    }
+    
+    .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-shrink: 0;
+    }
+    
+    .auth-btn {
+        background-color: transparent;
+        border: 1px solid #7BA4DB;
+        color: #7BA4DB;
+        padding: 8px 22px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .auth-btn:hover {
+        background-color: #7BA4DB;
+        color: #FFFFFF;
+    }
+
+    /* 🌟 핵심 해결: 프로필을 세로(2줄)로 배치하여 가로 공간 차지 최소화 */
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .profile-link-compact {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: background-color 0.2s;
+    }
+    .profile-link-compact:hover {
+        background-color: #F8FAFC;
+    }
+    .profile-avatar {
+        font-size: 26px;
+        color: #94A3B8;
+    }
+    .profile-text-wrap {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.3;
+    }
+    .profile-role {
+        font-size: 11px;
+        color: #64748B;
+        white-space: nowrap;
+    }
+    .profile-name {
+        font-size: 14px;
+        color: #0F172A;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .profile-name span {
+        font-size: 13px;
+        font-weight: 400;
+    }
+    
+    /* 깔끔한 미니 로그아웃 버튼 */
+    .logout-btn-compact {
+        background: transparent;
+        border: 1px solid #E2E8F0;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #64748B;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+    .logout-btn-compact:hover {
+        background: #F1F5F9;
+        color: #0F172A;
+    }
+
+    .admin-btn {
+        border-color: #FECACA !important;
+        color: #EF4444 !important;
+        background-color: #FEF2F2 !important;
+        border-radius: 20px !important;
+        padding: 6px 14px !important;
+        font-size: 12px !important;
+    }
+    .admin-btn:hover {
+        background-color: #EF4444 !important;
+        color: #FFFFFF !important;
+    }
+
+    /* 모바일 사용자 카드 */
+    .mobile-user-card {
+        background-color: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+    .mobile-user-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .mobile-user-avatar {
+        width: 40px;
+        height: 40px;
+        background-color: #EBF3FA;
+        color: #7BA4DB;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+    .mobile-user-info-text {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .mobile-user-name {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1E293B;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .mobile-role-badge {
+        font-size: 11px;
+        font-weight: 600;
+        color: #4A72B0;
+        background-color: #FFFFFF;
+        border: 1px solid #D5E3F6;
+        padding: 3px 9px;
+        border-radius: 20px;
+        white-space: nowrap;
+        align-self: flex-start;
+    }
+    .mobile-user-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 4px;
+    }
+
+    .menu-toggle {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #333333;
+    }
+
+    .sidebar {
+        position: fixed; top: 0; right: -280px; width: 280px; height: 100%;
+        background-color: #FFFFFF; box-shadow: -5px 0 25px rgba(0,0,0,0.03);
+        z-index: 2000; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 30px 25px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto;
+    }
+    .sidebar.active { right: 0; }
+    .sidebar-close { align-self: flex-end; background: none; border: none; font-size: 24px; cursor: pointer; color: #666666; }
+    
+    .sidebar-menu { display: flex; flex-direction: column; gap: 10px; }
+    .mobile-nav-item { display: flex; flex-direction: column; }
+    .mobile-nav-link { display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 500; color: #333333; padding: 12px 0; border-bottom: 1px solid #F0F0F0; text-decoration: none; cursor: pointer; }
+    .mobile-nav-link i { font-size: 12px; color: #999; transition: transform 0.3s ease; }
+    
+    .mobile-dropdown-content { display: none; flex-direction: column; background-color: #F8FAFC; border-radius: 6px; padding: 10px 15px; margin-top: 5px; gap: 10px; }
+    
+    .mobile-dropdown-subheader {
+        display: block;
+        padding: 10px 0 2px 0;
+        font-size: 14px;
+        font-weight: 700;
+        color: #333333;
+        cursor: default;
+        border-bottom: 1px solid #E2E8F0;
+        margin-top: 5px;
+    }
+    .mobile-dropdown-subheader:first-child {
+        margin-top: 0;
+    }
+
+    .mobile-dropdown-content a { font-size: 14px; color: #555555; text-decoration: none; padding: 5px 0; padding-left: 10px;}
+    .mobile-dropdown-content a:hover { color: #7BA4DB; font-weight: 500; }
+    
+    .mobile-nav-item.open .mobile-dropdown-content { display: flex; }
+    .mobile-nav-item.open .mobile-nav-link i { transform: rotate(180deg); }
+
+    .sidebar-auth { padding-bottom: 20px; border-bottom: 1px solid #F0F0F0; }
+    .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.15); z-index: 1999; display: none; }
+    .sidebar-overlay.active { display: block; }
+
+    /* 원래 모바일 분기점 1024px 복구 */
+    @media (max-width: 1024px) {
+        .nav-center { display: none; }
+        .auth-container-desktop { display: none; }
+        .menu-toggle { display: block; }
+    }
+</style>
+
+<header>
+    <div class="nav-container">
+        <a href="index.html" class="nav-left">
+            <img src="https://drive.google.com/thumbnail?id=1-vFaLyktqvl_ywa0BpiBppSI6lEgsKDd&sz=w200" alt="로고">
+            <span class="logo-title">형석고 학생회</span>
+        </a>
+
+        <nav class="nav-center">
+            <div class="nav-item">
+                <a href="#">알림 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="anno.html">공지사항</a>
+                    <a href="frinfo.html">자유게시판</a>
+                </div>
+            </div>
+            
+            <div class="nav-item">
+                <a href="#">학년부 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <!-- 1학년부 -->
+                    <span class="dropdown-subheader">1학년부</span>
+                    <!-- 여기에 1학년부 관련 <a> 태그 추가 -->
+
+                    <!-- 2학년부 -->
+                    <span class="dropdown-subheader">2학년부</span>
+                    <a href="metisign.html">멘토멘티/홈베이스 신청</a>
+                    <a href="metiset.html">멘토멘티 신청관리</a>
+
+                    <!-- 3학년부 -->
+                    <span class="dropdown-subheader">3학년부</span>
+                    <!-- 여기에 3학년부 관련 <a> 태그 추가 -->
+                </div>
+            </div>
+            
+            <div class="nav-item">
+                <a href="#">회장단 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="preinfo.html">부서 정보</a>
+                </div>
+            </div>
+            <div class="nav-item">
+                <a href="#">홍보미디어부 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="adinfo.html">부서 정보</a>
+                    <a href="survey.html">설문조사</a>
+                </div>
+            </div>
+            <div class="nav-item">
+                <a href="#">문화소통부 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="culinfo.html">부서 정보</a>
+                </div>
+            </div>
+            <div class="nav-item">
+                <a href="#">건강안전부 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="healthinfo.html">부서 정보</a>
+                </div>
+            </div>
+            <div class="nav-item">
+                <a href="#">학술문예부 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="stuinfo.html">부서 정보</a>
+                    <a href="hsaca.html">학술 아카이브</a>
+                    <a href="freebook.html">형석프리북스</a>
+                </div>
+            </div>
+            <div class="nav-item">
+                <a href="#">환경보호부 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="envinfo.html">부서 정보</a>
+                </div>
+            </div>
+            
+            <!-- 점 3개(기타) 드롭다운 메뉴 -->
+            <div class="nav-item">
+                <a href="#" style="padding-left: 5px;"><i class="fa-solid fa-ellipsis no-rotate" style="font-size: 18px;"></i></a>
+                <div class="dropdown-content" style="min-width: 130px;">
+                    <span class="dropdown-subheader">기타</span>
+                    <a href="baseinfo.html">사이트 정보</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="nav-right">
+            <div class="auth-container-desktop" id="authContainerDesktop">
+                <button class="auth-btn" onclick="location.href='login.html'">로그인</button>
+            </div>
+            
+            <button class="menu-toggle" id="menuToggleBtn">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+    </div>
+</header>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<aside class="sidebar" id="sidebarMenu">
+    <button class="sidebar-close" id="sidebarCloseBtn"><i class="fa-solid fa-xmark"></i></button>
+    
+    <div class="sidebar-auth" id="authContainerMobile">
+        <button class="auth-btn" style="width: 100%;" onclick="location.href='login.html'">로그인</button>
+    </div>
+
+    <nav class="sidebar-menu">
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">알림 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="anno.html" onclick="closeSidebar()">공지사항</a>
+                <a href="frinfo.html" onclick="closeSidebar()">자유게시판</a>
+            </div>
+        </div>
+        
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">학년부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <span class="mobile-dropdown-subheader">1학년부</span>
+                <!-- 여기에 1학년부 관련 <a> 태그 추가 -->
+
+                <span class="mobile-dropdown-subheader">2학년부</span>
+                <a href="metisign.html" onclick="closeSidebar()">멘토멘티/홈베이스 신청</a>
+                <a href="metiset.html" onclick="closeSidebar()">멘토멘티 신청관리</a>
+
+                <span class="mobile-dropdown-subheader">3학년부</span>
+                <!-- 여기에 3학년부 관련 <a> 태그 추가 -->
+            </div>
+        </div>
+        
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">회장단 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="preinfo.html" onclick="closeSidebar()">부서 정보</a>
+            </div>
+        </div>
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">홍보미디어부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="adinfo.html" onclick="closeSidebar()">부서 정보</a>
+                <a href="survey.html" onclick="closeSidebar()">설문조사</a>
+            </div>
+        </div>
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">문화소통부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="culinfo.html" onclick="closeSidebar()">부서 정보</a>
+            </div>
+        </div>
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">건강안전부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="healthinfo.html" onclick="closeSidebar()">부서 정보</a>
+            </div>
+        </div>
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">학술문예부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="stuinfo.html" onclick="closeSidebar()">부서 정보</a>
+                <a href="hsaca.html" onclick="closeSidebar()">학술 아카이브</a>
+                <a href="freebook.html" onclick="closeSidebar()">형석프리북스</a>
+            </div>
+        </div>
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">환경보호부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="envinfo.html" onclick="closeSidebar()">부서 정보</a>
+            </div>
+        </div>
+        
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">기타 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="baseinfo.html" onclick="closeSidebar()">사이트 정보</a>
+            </div>
+        </div>
+    </nav>
+</aside>
+`;
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.body.insertAdjacentHTML('afterbegin', headerHTML);
+
+    const menuToggleBtn = document.getElementById('menuToggleBtn');
+    const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    if (menuToggleBtn) menuToggleBtn.addEventListener('click', openSidebar);
+    if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', closeSidebar);
+    if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
+
+    checkLoginState();
+});
+
+function checkLoginState() {
+    const userSession = JSON.parse(localStorage.getItem('userSession'));
+    
+    const roleMapping = {
+        'student': '일반학생',
+        '학생': '일반학생',
+        'student_council': '학생회 임원',
+        'class_president': '반장',
+        'vice_president': '부반장',
+        'president': '전교회장',
+        'dept_head': '부장', 
+        'dept_vice': '차장',
+        'teacher': '선생님',
+        'admin': '시스템 관리자'
+    };
+
+    const deptMapping = {
+        'none': '',
+        '': '',
+        'executives': '회장단',
+        'content_comm': '홍보미디어부',
+        'culture_comm': '문화소통부',
+        'health_act': '건강안전부',
+        'academic_art': '학술문예부',
+        'safety_life': '환경보호부'
+    };
+
+    const desktopContainer = document.getElementById('authContainerDesktop');
+    const mobileContainer = document.getElementById('authContainerMobile');
+
+    if (userSession) {
+        let parsedRole = roleMapping[userSession.role] || '일반학생';
+        let parsedDept = deptMapping[userSession.department] || '';
+        let finalRoleText = parsedDept ? `${parsedDept} ${parsedRole}` : parsedRole;
+        
+        let adminButtonDesktop = '';
+        let adminButtonMobile = '';
+        if (userSession.role === 'admin') {
+            adminButtonDesktop = `<button class="auth-btn admin-btn" onclick="location.href='logset.html'"><i class="fa-solid fa-gear"></i></button>`;
+            adminButtonMobile = `<button class="auth-btn admin-btn" style="flex: 1; padding: 8px;" onclick="location.href='logset.html'"><i class="fa-solid fa-gear"></i> 회원관리</button>`;
+        }
+        
+        // 🌟 PC: 직책과 이름을 상하 2줄로 배치하여 가로 넓이 문제를 완벽 해결
+        if (desktopContainer) {
+            desktopContainer.innerHTML = `
+                <div class="user-info">
+                    ${adminButtonDesktop}
+                    <a href="setaco.html" class="profile-link-compact">
+                        <i class="fa-solid fa-circle-user profile-avatar"></i>
+                        <div class="profile-text-wrap">
+                            <span class="profile-role">${finalRoleText}</span>
+                            <span class="profile-name">${userSession.name || userSession.id}<span>님</span></span>
+                        </div>
+                    </a>
+                    <button class="logout-btn-compact" onclick="logout()">로그아웃</button>
+                </div>
+            `;
+        }
+        
+        if (mobileContainer) {
+            mobileContainer.innerHTML = `
+                <div class="mobile-user-card">
+                    <div class="mobile-user-header">
+                        <div class="mobile-user-avatar">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div class="mobile-user-info-text">
+                            <a href="setaco.html" class="mobile-user-name" onclick="closeSidebar()">
+                                <b>${userSession.name || userSession.id}</b>님
+                                <i class="fa-solid fa-angle-right" style="font-size:12px; color:#94A3B8;"></i>
+                            </a>
+                            <span class="mobile-role-badge">${finalRoleText}</span>
+                        </div>
+                    </div>
+                    <div class="mobile-user-actions">
+                        ${adminButtonMobile}
+                        <button class="logout-btn-compact" style="flex: 1; padding: 8px; font-size:13px;" onclick="logout()">로그아웃</button>
+                    </div>
+                </div>
+            `;
+        }
+    }
+}
+
+window.logout = function() {
+    localStorage.removeItem('userSession');
+    alert("로그아웃 되었습니다.");
+    window.location.reload(); 
+};
+
+function openSidebar() {
+    const sidebarMenu = document.getElementById('sidebarMenu');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    if(sidebarMenu && sidebarOverlay) {
+        sidebarMenu.classList.add('active');
+        sidebarOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+window.closeSidebar = function() {
+    const sidebarMenu = document.getElementById('sidebarMenu');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    if(sidebarMenu && sidebarOverlay) {
+        sidebarMenu.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+window.toggleMobileDropdown = function(element) {
+    const parentItem = element.parentElement;
+    parentItem.classList.toggle('open');
+}
+</script>
+
+  <!-- 2. Typography (Noto Sans KR) & Icon (FontAwesome 6 CDN) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <style>
+    /* UI 및 디자인 가이드 (Design System - CSS Variables) */
+    :root {
+      --primary-color: #7BA4DB;
+      --primary-hover: #648FC9;
+      --bg-color: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --border-color: #EEEEEE;
+      --text-main: #333333;
+      --text-sub: #64748B;
+      --danger-color: #EF4444;
+      --danger-hover: #DC2626;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: 'Noto Sans KR', system-ui, -apple-system, sans-serif;
+      letter-spacing: -0.5px;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+      letter-spacing: -0.5px;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* Layout: 메인 콘텐츠 영역은 max-width: 800px로 중앙 정렬 */
+    .main-container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Component Style: 카드 레이아웃 */
+    .card-box,
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    }
+
+    /* 상단 형석프리북스 타이틀 & 액션 바
+       (head.js의 전역 header 스타일과 충돌하지 않도록 div 요소로 사용) */
+    .page-header {
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .brand i {
+      color: var(--primary-color);
+      font-size: 24px;
+    }
+
+    .brand small {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+
+    .navright {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Component Style: 버튼 및 폼 (border-radius: 6px) */
+    .btn {
+      border: 0;
+      border-radius: 6px;
+      background: var(--primary-color);
+      color: #FFFFFF;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.15s ease;
+    }
+
+    .btn:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn.ghost {
+      background: var(--card-bg);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn.ghost:hover {
+      background: #F1F5F9;
+    }
+
+    .btn.danger {
+      background: var(--danger-color);
+      color: #FFFFFF;
+    }
+
+    .btn.danger:hover {
+      background: var(--danger-hover);
+    }
+
+    /* 게시판 컨텐츠 박스 */
+    .board-box {
+      padding: 24px;
+    }
+
+    .sectionhead {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .sectionhead h2 {
+      font-size: 20px;
+      margin: 0 0 4px;
+    }
+
+    .sub {
+      font-size: 13px;
+      color: var(--text-sub);
+      margin: 0;
+    }
+
+    .tools {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .search-wrap {
+      flex: 1;
+      position: relative;
+      min-width: 0;
+    }
+
+    .search-wrap i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-sub);
+      font-size: 14px;
+    }
+
+    .tools input,
+    .tools select {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 10px 12px;
+      color: var(--text-main);
+      font-size: 14px;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      padding-left: 36px;
+    }
+
+    .tools input:focus,
+    .tools select:focus,
+    form input:focus, form select:focus, form textarea:focus {
+      outline: 2px solid var(--primary-color);
+      border-color: var(--primary-color);
+    }
+
+    .tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .tag {
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 6px 12px;
+      background: var(--bg-color);
+      color: var(--text-sub);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .tag.active {
+      background: var(--primary-color);
+      color: #FFFFFF;
+      border-color: var(--primary-color);
+      font-weight: 700;
+    }
+
+    /* 도서 카드 그리드 */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(123, 164, 219, 0.18);
+      border-color: var(--primary-color);
+    }
+
+    .cover {
+      height: 156px;
+      background: linear-gradient(180deg, var(--tone) 0%, #F8FAFC 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .book {
+      width: 104px;
+      height: 130px;
+      background: var(--book);
+      color: var(--text);
+      border-radius: 2px 6px 6px 2px;
+      box-shadow: 0 6px 16px rgba(100, 116, 139, 0.16), inset 4px 0 rgba(255, 255, 255, 0.28);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 12px 11px;
+      font-weight: 800;
+      font-size: 15px;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .book small {
+      font-size: 10px;
+      font-weight: 500;
+      opacity: 0.92;
+    }
+
+    /* 인터넷에서 가져온 실제 책 표지 이미지 */
+    .cover-img {
+      height: 130px;
+      width: auto;
+      max-width: 120px;
+      object-fit: cover;
+      border-radius: 2px 6px 6px 2px;
+      box-shadow: 0 6px 16px rgba(100, 116, 139, 0.22);
+      background: #FFFFFF;
+    }
+
+    .cardbody {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .category {
+      display: inline-block;
+      width: fit-content;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--genre-bg);
+      color: var(--genre-ink);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .card h3 {
+      margin: 8px 0 4px;
+      font-size: 17px;
+      color: var(--text-main);
+      overflow-wrap: anywhere;
+    }
+
+    .author {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    .quote {
+      line-height: 1.65;
+      font-size: 13px;
+      color: var(--text-main);
+      margin: 10px 0 12px;
+      flex: 1;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .byline {
+      border-top: 1px solid var(--border-color);
+      padding-top: 10px;
+      font-size: 11px;
+      color: var(--text-sub);
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .byline .writer {
+      font-weight: 700;
+      color: var(--text-main);
+      overflow-wrap: anywhere;
+    }
+
+    .byline .mine {
+      color: var(--primary-color);
+      font-weight: 700;
+    }
+
+    .detail {
+      border: 0;
+      background: transparent;
+      color: var(--primary-color);
+      font-weight: 700;
+      padding: 8px 0 0;
+      font-size: 12px;
+      text-align: left;
+    }
+
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 44px 16px;
+      color: var(--text-sub);
+      font-size: 14px;
+    }
+
+    footer {
+      max-width: 800px;
+      margin: 0 auto 40px;
+      padding: 16px 20px 0;
+      border-top: 1px solid var(--border-color);
+      font-size: 12px;
+      color: var(--text-sub);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* Component Style: 모달(Modal) - .modal-overlay 위 중앙에 .modal-content
+       (head.js 상단 메뉴 z-index 1000보다 위, 모바일 사이드바 2000보다 아래) */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 1500;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      width: min(560px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 26px;
+    }
+
+    .modalhead {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .modalhead h2 {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .close {
+      border: 0;
+      background: transparent;
+      font-size: 22px;
+      color: var(--text-sub);
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .close:hover {
+      background: var(--bg-color);
+      color: var(--text-main);
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 14px;
+      color: var(--text-main);
+    }
+
+    form input, form select, form textarea {
+      display: block;
+      width: 100%;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-top: 6px;
+      background: var(--card-bg);
+      color: var(--text-main);
+      font-size: 14px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    /* 작성자 표시 선택 (이름 공개 / 익명) */
+    .field-title {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 14px;
+      color: var(--text-main);
+    }
+
+    .author-toggle {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .author-toggle .toggle-opt {
+      margin-top: 0;
+      flex: 1 1 180px;
+      position: relative;
+    }
+
+    .author-toggle .toggle-opt input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 1px;
+      height: 1px;
+      margin: 0;
+      padding: 0;
+      pointer-events: none;
+    }
+
+    .author-toggle .toggle-opt span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-color);
+      color: var(--text-sub);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      overflow-wrap: anywhere;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .author-toggle .toggle-opt input[type="radio"]:checked + span {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      color: #FFFFFF;
+      font-weight: 700;
+    }
+
+    .author-toggle .toggle-opt input[type="radio"]:focus-visible + span {
+      outline: 2px solid var(--primary-hover);
+      outline-offset: 2px;
+    }
+
+    .author-toggle .toggle-opt input[type="radio"]:disabled + span {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    /* 구글 북스 책 검색 */
+    .gb-box {
+      margin-top: 4px;
+      padding: 14px;
+      border: 1px dashed #D5E3F6;
+      border-radius: 6px;
+      background: #F6F9FE;
+    }
+
+    .gb-box .field-title {
+      margin-top: 0;
+    }
+
+    .gb-search {
+      display: flex;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .gb-search input {
+      flex: 1;
+      min-width: 0;
+      margin-top: 0 !important;
+    }
+
+    .gb-search .btn {
+      flex-shrink: 0;
+    }
+
+    .gb-results {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 8px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .gb-results:empty {
+      display: none;
+    }
+
+    .gb-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--card-bg);
+      text-align: left;
+      color: var(--text-main);
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .gb-item:hover,
+    .gb-item:focus-visible {
+      border-color: var(--primary-color);
+      background: #F1F6FD;
+    }
+
+    .gb-thumb {
+      width: 40px;
+      height: 56px;
+      flex-shrink: 0;
+      object-fit: cover;
+      border-radius: 2px 4px 4px 2px;
+      background: #E2E8F0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94A3B8;
+      font-size: 16px;
+    }
+
+    .gb-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .gb-info strong {
+      font-size: 13px;
+      overflow-wrap: anywhere;
+    }
+
+    .gb-info span {
+      font-size: 12px;
+      color: var(--text-sub);
+      overflow-wrap: anywhere;
+    }
+
+    .gb-msg {
+      font-size: 12px;
+      color: var(--text-sub);
+      padding: 6px 2px;
+      margin: 0;
+    }
+
+    .cover-preview {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+      padding: 10px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+    }
+
+    .cover-preview[hidden] {
+      display: none;
+    }
+
+    .cover-preview img {
+      width: 52px;
+      height: 74px;
+      object-fit: cover;
+      border-radius: 2px 4px 4px 2px;
+      box-shadow: 0 4px 10px rgba(100, 116, 139, 0.18);
+    }
+
+    .cover-preview .detail {
+      padding-top: 4px;
+      color: var(--danger-color);
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--text-sub);
+      line-height: 1.65;
+      margin-top: 10px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .detailfield {
+      display: block;
+      margin: 6px 0 16px;
+      padding: 12px;
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      white-space: pre-wrap;
+      line-height: 1.75;
+      font-size: 14px;
+      color: var(--text-main);
+    }
+
+    .admin-note {
+      font-size: 12px;
+      color: var(--danger-color);
+      margin-right: auto;
+      align-self: center;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text-main);
+      color: #FFFFFF;
+      padding: 12px 18px;
+      border-radius: 6px;
+      z-index: 1600;
+      font-size: 13px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .sr {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+    }
+
+    @media (max-width: 680px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .tools {
+        flex-direction: column;
+      }
+      .main-container {
+        margin: 24px auto;
+      }
+      .gb-search {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 메인 콘텐츠 영역 (max-width: 800px; margin: 40px auto; padding: 0 20px;) -->
+  <main class="main-container">
+    <!-- 상단 바: 형석프리북스 브랜드 & 책 등록하기 버튼
+         (head.js의 전역 header 스타일이 적용되지 않도록 div 사용) -->
+    <div class="page-header card-box">
+      <a class="brand" href="freebook.html">
+        <i class="fa-solid fa-book-open-reader" aria-hidden="true"></i>
+        <div>
+          형석프리북스
+          <small>형석고등학교 학술 문예부</small>
+        </div>
+      </a>
+      <div class="navright">
+        <button class="btn" id="openWriteBtn" data-open="compose" type="button">
+          <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> 책 등록하기
+        </button>
+      </div>
+    </div>
+
+    <!-- 친구들의 책장 게시판 -->
+    <section class="board-box card-box" id="books">
+      <div class="sectionhead">
+        <div>
+          <h2><i class="fa-solid fa-book-bookmark" style="color: var(--primary-color); margin-right: 6px;"></i>친구들의 책장</h2>
+          <p class="sub">카드를 클릭하면 도서 선정 이유, 난이도, 평가를 자세히 볼 수 있어요.</p>
+        </div>
+        <span class="sub" id="count"></span>
+      </div>
+
+      <div class="tools">
+        <div class="search-wrap">
+          <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          <label class="sr" for="search">검색</label>
+          <input id="search" placeholder="도서명, 저자, 내용, 선정 이유로 검색 (띄어쓰기 무관)" type="search" />
+        </div>
+        <label class="sr" for="sort">정렬</label>
+        <select id="sort">
+          <option value="new">최신 등록순</option>
+          <option value="title">제목 가나다순</option>
+        </select>
+      </div>
+
+      <div aria-label="분야 필터" class="tags" id="tags"></div>
+      <div aria-live="polite" class="grid" id="grid"></div>
+    </section>
+  </main>
+
+  <footer>
+    <span>형석프리북스 · 형석고등학교 학술 문예부</span>
+    <span>문의: 형석고등학교 학술 문예부</span>
+  </footer>
+
+  <!-- 모달 1: 책 등록 / 수정 (.modal-overlay + .modal-content) -->
+  <div class="modal-overlay" id="compose" role="dialog" aria-modal="true" aria-labelledby="composeModalTitle">
+    <div class="modal-content">
+      <div class="modalhead">
+        <h2 id="composeModalTitle"><i class="fa-solid fa-pen-to-square" style="color: var(--primary-color);"></i> <span id="composeTitleText">내가 읽은 책 공유하기</span></h2>
+        <button aria-label="닫기" class="close" data-close="compose" type="button">&times;</button>
+      </div>
+      <form id="form">
+        <!-- 구글 북스 책 검색: 결과를 누르면 도서명·저자·표지가 자동 입력 -->
+        <div class="gb-box">
+          <span class="field-title" id="gbTitle"><i class="fa-brands fa-google" style="color: var(--primary-color);" aria-hidden="true"></i> 구글 북스에서 책 찾기 (선택)</span>
+          <div class="gb-search">
+            <input id="gbQuery" type="search" maxlength="80" placeholder="도서명이나 저자를 입력하고 검색하세요" aria-labelledby="gbTitle" />
+            <button class="btn ghost" id="gbSearchBtn" type="button">
+              <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> 검색
+            </button>
+          </div>
+          <div class="gb-results" id="gbResults" aria-live="polite"></div>
+          <div class="cover-preview" id="coverPreview" hidden>
+            <img id="coverPreviewImg" alt="선택한 책 표지 미리보기" referrerpolicy="no-referrer" />
+            <div class="gb-info">
+              <strong id="coverPreviewTitle"></strong>
+              <span>이 표지로 책장에 등록돼요.</span>
+              <button class="detail" id="coverClearBtn" type="button">표지 선택 취소</button>
+            </div>
+          </div>
+        </div>
+
+        <label>1. 도서명 *
+          <input maxlength="60" name="title" placeholder="예: 데미안" required />
+        </label>
+        <label>2. 저자 *
+          <input maxlength="40" name="author" placeholder="예: 헤르만 헤세" required />
+        </label>
+        <label>분야 *
+          <select name="category" required>
+            <option value="문학">문학</option>
+            <option value="인문·사회">인문·사회</option>
+            <option value="과학·기술">과학·기술</option>
+            <option value="예술">예술</option>
+            <option value="기타">기타</option>
+          </select>
+        </label>
+        <label>3. 내용 *
+          <textarea maxlength="700" minlength="10" name="review" placeholder="책의 핵심 줄거리나 인상 깊었던 내용을 적어 주세요. (10자 이상)" required></textarea>
+        </label>
+        <label>4. 도서 선정 이유 *
+          <textarea maxlength="500" name="reason" placeholder="이 책을 고르거나 친구들에게 소개하고 싶은 이유를 적어 주세요." required></textarea>
+        </label>
+        <label>5. 선정 도서 난이도 *
+          <select name="difficulty" required>
+            <option value="">난이도를 선택해 주세요</option>
+            <option value="쉬움">쉬움 — 누구나 편하게 읽을 수 있어요</option>
+            <option value="보통">보통 — 차근차근 읽으면 이해하기 좋아요</option>
+            <option value="어려움">어려움 — 배경지식이나 깊은 생각이 필요해요</option>
+          </select>
+        </label>
+        <label>6. 선정 도서 평가 *
+          <textarea maxlength="500" name="evaluation" placeholder="책을 읽고 난 뒤의 총평이나 어떤 친구에게 추천하는지 자유롭게 적어 주세요." required></textarea>
+        </label>
+
+        <!-- 7. 작성자 표시 선택: 로그인 정보의 이름 공개 / 익명 -->
+        <span class="field-title" id="authorModeTitle">7. 작성자 표시 *</span>
+        <div class="author-toggle" role="radiogroup" aria-labelledby="authorModeTitle">
+          <label class="toggle-opt">
+            <input type="radio" name="authorMode" value="anonymous" checked />
+            <span><i class="fa-solid fa-user-secret" aria-hidden="true"></i> 익명으로 올리기</span>
+          </label>
+          <label class="toggle-opt">
+            <input type="radio" name="authorMode" value="named" />
+            <span><i class="fa-solid fa-id-badge" aria-hidden="true"></i> 이름 공개 (<b id="authorNamePreview"></b>)</span>
+          </label>
+        </div>
+        <p class="hint" id="authorModeHint">
+          '익명'을 선택하면 게시물에 작성자가 '익명'으로 표시되고, '이름 공개'를 선택하면 로그인한 이름이 표시됩니다.
+          수정·삭제는 글을 쓴 본인 계정(또는 관리자)으로 로그인했을 때만 할 수 있어요.
+          책 표지는 구글 북스(Google Books)에서 자동으로 가져오며, 찾지 못하면 기본 표지가 표시됩니다.
+        </p>
+
+        <div class="actions">
+          <button class="btn ghost" data-close="compose" type="button">취소</button>
+          <button class="btn" id="submitBtn" type="submit">
+            <i class="fa-solid fa-check" aria-hidden="true"></i> 등록하기
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 모달 2: 도서 상세 보기 (.modal-overlay + .modal-content) -->
+  <div class="modal-overlay" id="detail" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="modal-content">
+      <div class="modalhead">
+        <div>
+          <h2 id="detailTitle"></h2>
+          <p class="sub" id="detailMeta" style="margin-top: 4px;"></p>
+        </div>
+        <button aria-label="닫기" class="close" data-close="detail" type="button">&times;</button>
+      </div>
+      <div id="detailReview"></div>
+      <div class="actions" id="detailActions"></div>
+    </div>
+  </div>
+
+  <!-- 모달 3: 게시글 삭제 확인 (.modal-overlay + .modal-content) -->
+  <div class="modal-overlay" id="deleteModal" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+    <div class="modal-content" style="max-width: 420px;">
+      <div class="modalhead">
+        <h2 id="deleteModalTitle"><i class="fa-solid fa-trash-can" style="color: var(--danger-color);"></i> 게시글 삭제</h2>
+        <button aria-label="닫기" class="close" data-close="deleteModal" type="button">&times;</button>
+      </div>
+      <form id="deleteForm">
+        <p class="sub" id="deleteTargetText" style="line-height: 1.7;"></p>
+        <div class="actions" style="margin-top: 18px;">
+          <button class="btn ghost" data-close="deleteModal" type="button">취소</button>
+          <button class="btn danger" id="confirmDeleteBtn" type="submit">
+            <i class="fa-solid fa-trash-can" aria-hidden="true"></i> 삭제하기
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div aria-live="polite" class="toast" hidden id="toast"></div>
+
+  <!-- Frontend: Vanilla JS (ES Modules) & Backend/DB: Firebase Firestore (v10.7.1) -->
+  <script type="module">
+    import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      addDoc,
+      updateDoc,
+      deleteDoc,
+      doc,
+      query,
+      orderBy,
+      serverTimestamp
+    } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+    // 사이트 공통 Firebase 프로젝트 설정 (login.js / index.html / anno.html과 동일)
+    const firebaseConfig = {
+      apiKey: 'AIzaSyCWPYuQeihfDgp5tVlrObBVRs2UZDlTkks',
+      authDomain: 'hyeongsok-student-counci-e6115.firebaseapp.com',
+      projectId: 'hyeongsok-student-counci-e6115',
+      storageBucket: 'hyeongsok-student-counci-e6115.firebasestorage.app',
+      messagingSenderId: '847440892138',
+      appId: '1:847440892138:web:152021aaaf5f330b2d0793',
+      measurementId: 'G-F40YFFMGWE'
+    };
+
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const COLLECTION = 'freebooks';
+
+    // ===== 구글 북스(Google Books API) 설정 =====
+    // ★ Google Cloud 콘솔에서 'Books API'를 사용 설정한 뒤 발급받은 API 키를 아래 따옴표 안에 넣으세요.
+    //   예) const GOOGLE_BOOKS_API_KEY = 'AIza...';
+    //   비워 두면 Firebase 설정의 apiKey를 대신 사용합니다.
+    //   (Firebase 키는 Books API 권한이 없으면 403 오류가 납니다. 키 없이 보내는 요청은
+    //    전 세계가 함께 쓰는 무료 한도라 429(사용량 초과) 오류가 자주 납니다.)
+    const GOOGLE_BOOKS_API_KEY = 'AIzaSyCVgY2PfviicNhGB42oYROjH2GbouAqsgc';
+    const GOOGLE_BOOKS_ENDPOINT = 'https://www.googleapis.com/books/v1/volumes';
+    const BOOKS_KEY = GOOGLE_BOOKS_API_KEY.trim() || firebaseConfig.apiKey;
+    const ENABLE_AUTO_COVER = true; // 표지 자동 불러오기를 끄려면 false
+    const COVER_CACHE_KEY = 'hs_freebooks_cover_cache_v1';
+
+    // 세션/권한 관리: localStorage 'userSession' 객체 확인 ({ id, name, role, department, studentNumber, studentId })
+    function getUserSession() {
+      try {
+        return JSON.parse(localStorage.getItem('userSession') || 'null');
+      } catch (e) {
+        return null;
+      }
+    }
+
+    const userSession = getUserSession();
+    const isLoggedIn = Boolean(userSession && userSession.id);
+    const isAdmin = Boolean(
+      isLoggedIn && ['admin', 'manager', 'teacher', 'president'].includes(String(userSession.role || '').toLowerCase())
+    );
+
+    function displayName() {
+      return (userSession && (userSession.name || userSession.id)) || '익명';
+    }
+
+    function isOwner(b) {
+      return Boolean(isLoggedIn && b && b.authorId && b.authorId !== 'anonymous' && b.authorId === userSession.id);
+    }
+
+    // 본인(로그인 id 기준) 또는 관리자만 수정·삭제 가능
+    function canManage(b) {
+      if (!isLoggedIn || !b || b.sample || !b.id) return false;
+      return isAdmin || isOwner(b);
+    }
+
+    // 분야별 책 표지 색상 (배경 #F8FAFC 및 포인트 #7BA4DB와 어우러지는 소프트 파스텔 톤)
+    const genreColors = {
+      '문학': ['#F1F6FD', '#6E99D4', '#FFFFFF'],
+      '인문·사회': ['#F3F2FA', '#847EC2', '#FFFFFF'],
+      '과학·기술': ['#EEF7F6', '#5A9E9A', '#FFFFFF'],
+      '예술': ['#FDF3F4', '#C47D8B', '#FFFFFF'],
+      '기타': ['#F1F5F9', '#64748B', '#FFFFFF']
+    };
+
+    const categories = ['전체', '문학', '인문·사회', '과학·기술', '예술', '기타'];
+
+    const samples = [];
+
+    const $ = (id) => document.getElementById(id);
+    const node = (tag, cls, text) => {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text !== undefined) e.textContent = text;
+      return e;
+    };
+
+    let category = '전체';
+    let remoteBooks = [];
+    let loading = true;
+    let targetDeleteBook = null;
+    let editingBook = null;
+
+    function openModal(id) {
+      const m = $(id);
+      if (m) m.classList.add('open');
+    }
+
+    function closeModal(id) {
+      const m = $(id);
+      if (m) m.classList.remove('open');
+    }
+
+    function notify(msg) {
+      const t = $('toast');
+      t.textContent = msg;
+      t.hidden = false;
+      clearTimeout(notify.t);
+      notify.t = setTimeout(() => (t.hidden = true), 2600);
+    }
+
+    function requireLogin() {
+      if (confirm('책 등록은 로그인한 학생만 할 수 있어요.\n로그인 페이지로 이동할까요?')) {
+        location.href = 'login.html';
+      }
+    }
+
+    function syncTags() {
+      document.querySelectorAll('.tag').forEach((t) => t.classList.toggle('active', t.textContent === category));
+    }
+
+    // 띄어쓰기·특수문자·'난장이/난쟁이' 표기 차이 무시 검색 정규화
+    function normalizeSearch(value) {
+      return String(value || '')
+        .normalize('NFKC')
+        .toLocaleLowerCase()
+        .replace(/난쟁이/g, '난장이')
+        .replace(/[\s·.,!?'"“”‘’()\[\]{}\-_\/\\]+/gu, '');
+    }
+
+    function getBooks() {
+      const seen = new Set();
+      const merged = [];
+      for (const b of [...remoteBooks, ...samples]) {
+        const k = b.id || b.title + '|' + b.author;
+        if (!seen.has(k)) {
+          seen.add(k);
+          merged.push(b);
+        }
+      }
+      return merged;
+    }
+
+    function getAuthorName(b) {
+      return b.authorName || '익명';
+    }
+
+    async function loadRemoteBooks() {
+      try {
+        const q = query(collection(db, COLLECTION), orderBy('date', 'desc'));
+        const snap = await getDocs(q);
+        // 문서 안의 필드보다 Firestore 문서 id가 우선하도록 id를 마지막에 지정
+        remoteBooks = snap.docs.map((d) => ({ ...d.data(), id: d.id, sample: false }));
+      } catch (err) {
+        console.error('도서 목록 불러오기 오류:', err);
+        notify('온라인 책장을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.');
+      } finally {
+        loading = false;
+        render();
+      }
+    }
+
+    // ===== 구글 북스(Google Books API) 연동 =====
+    let googleKeyBlocked = false;   // 키가 거부되면 이후에는 키 없이 요청
+    let booksPausedUntil = 0;       // 연속 실패 시 잠시 요청 중단 (불필요한 반복 호출 방지)
+    let lastBooksError = '';
+
+    async function requestGoogleBooks(q, maxResults, useKey) {
+      const params = new URLSearchParams({
+        q,
+        maxResults: String(maxResults),
+        printType: 'books'
+      });
+      if (useKey && BOOKS_KEY) params.set('key', BOOKS_KEY);
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 8000);
+      try {
+        return await fetch(GOOGLE_BOOKS_ENDPOINT + '?' + params.toString(), { signal: ctrl.signal });
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    async function readErrorReason(res) {
+      try {
+        const data = await res.clone().json();
+        return (data && data.error && data.error.message) || '';
+      } catch {
+        return '';
+      }
+    }
+
+    // 오류 코드 → 화면에 보여 줄 안내 문구
+    function booksErrorMessage(code) {
+      switch (code) {
+        case 'KEY_DENIED':
+          return 'API 키에 Books API 권한이 없어요. (관리자: Google Cloud 콘솔에서 Books API 사용 설정·키 제한을 확인해 주세요)';
+        case 'QUOTA':
+          return '구글 북스 오늘 사용량이 초과됐어요. (관리자: 전용 API 키를 발급해 코드에 넣어 주세요)';
+        case 'NETWORK':
+          return '구글 북스에 연결하지 못했어요. 인터넷 연결이나 학교 방화벽을 확인해 주세요.';
+        case 'PAUSED':
+          return '구글 북스 연결이 잠시 중단됐어요. 1~2분 뒤 다시 시도해 주세요.';
+        default:
+          return '구글 북스 검색에 실패했어요. 잠시 후 다시 시도하거나 직접 입력해 주세요.';
+      }
+    }
+
+    function booksFail(code, detail) {
+      lastBooksError = code;
+      if (code === 'KEY_DENIED' || code === 'QUOTA') booksPausedUntil = Date.now() + 2 * 60 * 1000;
+      console.warn('[Google Books] ' + code + (detail ? ' - ' + detail : ''));
+      const err = new Error(code);
+      err.code = code;
+      return err;
+    }
+
+    // 검색 결과(items 배열) 반환. 실패하면 err.code가 있는 오류 발생
+    async function searchGoogleBooks(q, maxResults = 8, { force = false } = {}) {
+      if (!force && Date.now() < booksPausedUntil) throw booksFail('PAUSED');
+
+      let res = null;
+      let keyDenied = false;
+      if (BOOKS_KEY && !googleKeyBlocked) {
+        try {
+          res = await requestGoogleBooks(q, maxResults, true);
+        } catch {
+          res = null;
+        }
+        if (res && [400, 403].includes(res.status)) {
+          console.warn('[Google Books] API 키 거부(' + res.status + '): ' + (await readErrorReason(res)));
+          googleKeyBlocked = true;
+          keyDenied = true;
+          res = null;
+        }
+      }
+
+      if (!res) {
+        try {
+          res = await requestGoogleBooks(q, maxResults, false);
+        } catch (e) {
+          throw booksFail(keyDenied ? 'KEY_DENIED' : 'NETWORK', e && e.message);
+        }
+      }
+
+      if (!res.ok) {
+        const reason = await readErrorReason(res);
+        if (res.status === 429) throw booksFail(keyDenied ? 'KEY_DENIED' : 'QUOTA', reason);
+        if (res.status === 403) throw booksFail('KEY_DENIED', reason);
+        throw booksFail('HTTP_' + res.status, reason);
+      }
+
+      booksPausedUntil = 0;
+      lastBooksError = '';
+      const data = await res.json();
+      return Array.isArray(data.items) ? data.items : [];
+    }
+
+    function toHttps(url) {
+      return String(url || '').replace(/^http:\/\//, 'https://').replace('&edge=curl', '');
+    }
+
+    function toBookInfo(it) {
+      const v = (it && it.volumeInfo) || {};
+      const links = v.imageLinks || {};
+      return {
+        gid: it.id || '',
+        title: [v.title, v.subtitle].filter(Boolean).join(': '),
+        author: Array.isArray(v.authors) ? v.authors.join(', ') : '',
+        publisher: v.publisher || '',
+        year: String(v.publishedDate || '').slice(0, 4),
+        cover: toHttps(links.thumbnail || links.smallThumbnail || '')
+      };
+    }
+
+    // 도서명·저자로 표지 이미지 주소 찾기. 실패하면 빈 문자열
+    async function fetchCoverUrl(title, author) {
+      if (!ENABLE_AUTO_COVER || !title) return '';
+      const queries = author ? [`intitle:${title} inauthor:${author}`, `intitle:${title}`] : [`intitle:${title}`];
+      for (const q of queries) {
+        try {
+          const items = await searchGoogleBooks(q, 5);
+          const hit = items.map(toBookInfo).find((x) => x.cover);
+          if (hit) return hit.cover;
+        } catch {
+          return null; // 검색 실패 (표지 없음과 구분)
+        }
+      }
+      return '';
+    }
+
+    // 표지가 저장되지 않은 기존 글은 화면에서만 표지를 찾아 보여 줌 (브라우저에 캐시)
+    let coverCache = {};
+    try {
+      coverCache = JSON.parse(localStorage.getItem(COVER_CACHE_KEY) || '{}') || {};
+    } catch {
+      coverCache = {};
+    }
+    const coverPending = new Map();
+
+    function cacheKeyOf(b) {
+      return normalizeSearch(b.title) + '|' + normalizeSearch(b.author);
+    }
+
+    function lookupCover(b) {
+      const k = cacheKeyOf(b);
+      const hit = coverCache[k];
+      const WEEK = 7 * 24 * 60 * 60 * 1000;
+      if (hit && (hit.url || Date.now() - hit.t < WEEK)) return Promise.resolve(hit.url || '');
+      if (coverPending.has(k)) return coverPending.get(k);
+      const job = fetchCoverUrl(b.title, b.author).then((url) => {
+        coverPending.delete(k);
+        if (url === null) return ''; // 검색 실패는 캐시하지 않음 → 다음에 다시 시도
+        coverCache[k] = { url, t: Date.now() };
+        try {
+          localStorage.setItem(COVER_CACHE_KEY, JSON.stringify(coverCache));
+        } catch {}
+        return url;
+      });
+      coverPending.set(k, job);
+      return job;
+    }
+
+    function makeCoverImg(b, url) {
+      const img = document.createElement('img');
+      img.className = 'cover-img';
+      img.src = url;
+      img.alt = (b.title || '') + ' 표지';
+      img.loading = 'lazy';
+      img.referrerPolicy = 'no-referrer';
+      img.addEventListener('error', () => img.replaceWith(makeCssBook(b)), { once: true });
+      return img;
+    }
+
+    function fillCover(cover, b) {
+      if (b.coverUrl) {
+        cover.append(makeCoverImg(b, b.coverUrl));
+        return;
+      }
+      const placeholder = makeCssBook(b);
+      cover.append(placeholder);
+      if (!ENABLE_AUTO_COVER || b.sample || !b.title) return;
+      lookupCover(b).then((url) => {
+        if (url && placeholder.isConnected) placeholder.replaceWith(makeCoverImg(b, url));
+      });
+    }
+
+    function makeCssBook(b) {
+      const book = node('div', 'book');
+      book.setAttribute('aria-hidden', 'true');
+      book.append(node('span', '', b.title), node('small', '', b.author));
+      return book;
+    }
+
+    function render() {
+      const q = normalizeSearch($('search').value);
+      let list = getBooks().filter(
+        (b) =>
+          (category === '전체' || b.category === category) &&
+          [
+            b.title, b.author, b.category || '', b.review, b.reason || '', b.difficulty || '', b.evaluation || '',
+            b.isAnonymous === false ? b.authorName || '' : ''
+          ].some((v) => normalizeSearch(v).includes(q))
+      );
+
+      list.sort(
+        $('sort').value === 'title'
+          ? (a, b) => String(a.title || '').localeCompare(String(b.title || ''), 'ko')
+          : (a, b) => Number(b.date || 0) - Number(a.date || 0)
+      );
+
+      $('grid').replaceChildren();
+
+      if (loading) {
+        $('count').textContent = '';
+        $('grid').append(node('p', 'empty', '책장을 불러오는 중이에요...'));
+        return;
+      }
+
+      $('count').textContent = list.length + '개의 이야기';
+
+      if (!list.length) {
+        $('grid').append(node('p', 'empty', '아직 해당하는 책이 없어요. 다른 분야를 선택하거나 첫 번째 이야기를 남겨 볼까요?'));
+        return;
+      }
+
+      list.forEach((b) => {
+        const card = node('article', 'card');
+        const cover = node('div', 'cover');
+        const p = genreColors[b.category] || genreColors['기타'];
+
+        card.style.setProperty('--genre-bg', p[0]);
+        card.style.setProperty('--genre-ink', p[1]);
+        cover.style.setProperty('--tone', p[0]);
+        cover.style.setProperty('--book', p[1]);
+        cover.style.setProperty('--text', p[2]);
+
+        fillCover(cover, b);
+
+        const review = String(b.review || '');
+        const body = node('div', 'cardbody');
+        body.append(
+          node('span', 'category', b.category),
+          node('h3', '', b.title),
+          node('div', 'author', b.author),
+          node('p', 'quote', review.length > 85 ? review.slice(0, 85) + '…' : review)
+        );
+
+        const by = node('div', 'byline');
+        const mine = isOwner(b);
+        by.append(
+          node('span', 'writer', getAuthorName(b)),
+          node('span', mine ? 'mine' : '', b.sample ? '예시 글' : mine ? '내 글' : '학생 추천 글')
+        );
+        body.append(by);
+
+        const btn = node('button', 'detail', '이야기 더 읽기 →');
+        btn.type = 'button';
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openDetail(b);
+        });
+        body.append(btn);
+
+        card.tabIndex = 0;
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-label', b.title + ' 상세 내용 보기');
+        card.addEventListener('click', () => openDetail(b));
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openDetail(b);
+          }
+        });
+
+        card.append(cover, body);
+        $('grid').append(card);
+      });
+    }
+
+    function openDetail(b) {
+      $('detailTitle').textContent = b.title;
+      $('detailMeta').textContent = `${b.author} · ${b.category} · 작성자: ${getAuthorName(b)}${b.sample ? ' · 예시 도서' : ''}`;
+      $('detailReview').replaceChildren();
+
+      for (const [label, value] of [
+        ['내용', b.review],
+        ['도서 선정 이유', b.reason],
+        ['선정 도서 난이도', b.difficulty],
+        ['선정 도서 평가', b.evaluation]
+      ]) {
+        $('detailReview').append(node('label', '', label), node('span', 'detailfield', value || '미입력'));
+      }
+
+      $('detailActions').replaceChildren();
+
+      // 본인(로그인 id 일치) 또는 관리자에게만 수정·삭제 버튼 노출
+      if (canManage(b)) {
+        if (isAdmin && !isOwner(b)) {
+          $('detailActions').append(node('span', 'admin-note', '관리자 권한으로 관리 중'));
+        }
+
+        const editBtn = node('button', 'btn ghost', '');
+        editBtn.type = 'button';
+        editBtn.innerHTML = '<i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> 수정하기';
+        editBtn.onclick = () => {
+          if (!canManage(b)) {
+            notify('이 글을 수정할 권한이 없어요.');
+            return;
+          }
+          closeModal('detail');
+          startEditWrite(b);
+        };
+
+        const delBtn = node('button', 'btn danger', '');
+        delBtn.type = 'button';
+        delBtn.innerHTML = '<i class="fa-solid fa-trash-can" aria-hidden="true"></i> 삭제하기';
+        delBtn.onclick = () => openDeleteModal(b);
+
+        $('detailActions').append(editBtn, delBtn);
+      }
+
+      const ok = node('button', 'btn', '닫기');
+      ok.type = 'button';
+      ok.onclick = () => closeModal('detail');
+      $('detailActions').append(ok);
+
+      openModal('detail');
+    }
+
+    categories.forEach((c) => {
+      const b = node('button', 'tag' + (c === category ? ' active' : ''), c);
+      b.type = 'button';
+      b.onclick = () => {
+        category = c;
+        syncTags();
+        render();
+      };
+      $('tags').append(b);
+    });
+
+    $('search').oninput = () => {
+      if ($('search').value.trim() && category !== '전체') {
+        category = '전체';
+        syncTags();
+      }
+      render();
+    };
+    $('sort').onchange = render;
+
+    // 작성자 표시(익명/이름 공개) 관련
+    function setAuthorMode(anonymous, disabled) {
+      const f = $('form');
+      f.querySelectorAll('input[name="authorMode"]').forEach((r) => {
+        r.checked = r.value === (anonymous ? 'anonymous' : 'named');
+        r.disabled = Boolean(disabled);
+      });
+    }
+
+    function getAnonymousChoice() {
+      const checked = $('form').querySelector('input[name="authorMode"]:checked');
+      return !checked || checked.value !== 'named';
+    }
+
+    // ===== 작성 폼: 구글 북스 검색 & 표지 선택 =====
+    let selectedBook = null; // { gid, cover, title, author }
+
+    function showCoverPreview() {
+      const box = $('coverPreview');
+      if (selectedBook && selectedBook.cover) {
+        $('coverPreviewImg').src = selectedBook.cover;
+        $('coverPreviewTitle').textContent = selectedBook.title || '';
+        box.hidden = false;
+      } else {
+        $('coverPreviewImg').removeAttribute('src');
+        box.hidden = true;
+      }
+    }
+
+    function resetBookSearch(preset) {
+      selectedBook = preset || null;
+      $('gbQuery').value = '';
+      $('gbResults').replaceChildren();
+      showCoverPreview();
+    }
+
+    function pickBook(info) {
+      const f = $('form');
+      const title = info.title.slice(0, 60);
+      const author = info.author.slice(0, 40);
+      f.elements['title'].value = title;
+      if (author) f.elements['author'].value = author;
+      selectedBook = { gid: info.gid, cover: info.cover, title, author: f.elements['author'].value };
+      $('gbResults').replaceChildren();
+      showCoverPreview();
+      notify(info.cover ? '책 정보와 표지를 불러왔어요.' : '책 정보를 불러왔어요. (표지 이미지는 없어요)');
+    }
+
+    async function runBookSearch() {
+      const q = $('gbQuery').value.trim();
+      const box = $('gbResults');
+      if (q.length < 2) {
+        notify('검색어를 2자 이상 입력해 주세요.');
+        $('gbQuery').focus();
+        return;
+      }
+      const btn = $('gbSearchBtn');
+      btn.disabled = true;
+      box.replaceChildren(node('p', 'gb-msg', '구글 북스에서 찾는 중...'));
+      try {
+        const list = (await searchGoogleBooks(q, 8, { force: true })).map(toBookInfo).filter((x) => x.title);
+        box.replaceChildren();
+        if (!list.length) {
+          box.append(node('p', 'gb-msg', '검색 결과가 없어요. 도서명을 직접 입력해도 등록할 수 있어요.'));
+          return;
+        }
+        list.forEach((info) => {
+          const item = node('button', 'gb-item');
+          item.type = 'button';
+          if (info.cover) {
+            const img = document.createElement('img');
+            img.className = 'gb-thumb';
+            img.src = info.cover;
+            img.alt = '';
+            img.referrerPolicy = 'no-referrer';
+            item.append(img);
+          } else {
+            const ph = node('span', 'gb-thumb');
+            ph.innerHTML = '<i class="fa-solid fa-book" aria-hidden="true"></i>';
+            item.append(ph);
+          }
+          const text = node('span', 'gb-info');
+          text.append(
+            node('strong', '', info.title),
+            node('span', '', [info.author || '저자 정보 없음', info.publisher, info.year].filter(Boolean).join(' · '))
+          );
+          item.append(text);
+          item.setAttribute('aria-label', info.title + ' 선택');
+          item.addEventListener('click', () => pickBook(info));
+          box.append(item);
+        });
+      } catch (err) {
+        console.error('구글 북스 검색 오류:', err);
+        box.replaceChildren(node('p', 'gb-msg', booksErrorMessage(err && err.code) + ' 도서명·저자는 직접 입력해도 등록할 수 있어요.'));
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    $('gbSearchBtn').onclick = runBookSearch;
+    $('gbQuery').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault(); // 폼 제출 방지
+        runBookSearch();
+      }
+    });
+    $('coverClearBtn').onclick = () => {
+      selectedBook = null;
+      showCoverPreview();
+    };
+
+    // 저장할 표지 결정: 선택한 책 표지 → (수정 시) 기존 표지 → 자동 검색
+    async function resolveCover(item, original) {
+      if (selectedBook && selectedBook.cover && selectedBook.title === item.title) {
+        return { coverUrl: selectedBook.cover, googleBooksId: selectedBook.gid || '' };
+      }
+      if (
+        original && original.coverUrl && selectedBook &&
+        original.title === item.title && original.author === item.author
+      ) {
+        return { coverUrl: original.coverUrl, googleBooksId: original.googleBooksId || '' };
+      }
+      return { coverUrl: (await fetchCoverUrl(item.title, item.author)) || '', googleBooksId: '' };
+    }
+
+    function setSubmitLabel() {
+      $('submitBtn').innerHTML = editingBook
+        ? '<i class="fa-solid fa-check" aria-hidden="true"></i> 수정 완료'
+        : '<i class="fa-solid fa-check" aria-hidden="true"></i> 등록하기';
+    }
+
+    function startNewWrite() {
+      if (!isLoggedIn) {
+        requireLogin();
+        return;
+      }
+      editingBook = null;
+      $('form').reset();
+      $('authorNamePreview').textContent = displayName();
+      setAuthorMode(true, false);
+      resetBookSearch(null);
+      $('composeTitleText').textContent = '내가 읽은 책 공유하기';
+      setSubmitLabel();
+      openModal('compose');
+    }
+
+    function startEditWrite(book) {
+      if (!canManage(book)) {
+        notify('이 글을 수정할 권한이 없어요.');
+        return;
+      }
+      editingBook = book;
+      const f = $('form');
+      f.reset();
+      f.elements['title'].value = book.title || '';
+      f.elements['author'].value = book.author || '';
+      f.elements['category'].value = categories.includes(book.category) && book.category !== '전체' ? book.category : '기타';
+      f.elements['review'].value = book.review || '';
+      f.elements['reason'].value = book.reason || '';
+      f.elements['difficulty'].value = book.difficulty || '';
+      f.elements['evaluation'].value = book.evaluation || '';
+      resetBookSearch(
+        book.coverUrl
+          ? { gid: book.googleBooksId || '', cover: book.coverUrl, title: book.title || '', author: book.author || '' }
+          : null
+      );
+
+      const anonymous = book.isAnonymous !== false;
+      if (isOwner(book)) {
+        // 본인 글: 익명/이름 공개 변경 가능
+        $('authorNamePreview').textContent = displayName();
+        setAuthorMode(anonymous, false);
+      } else {
+        // 관리자가 다른 사람 글 수정: 작성자 표시는 원래대로 유지(변경 불가)
+        $('authorNamePreview').textContent = anonymous ? '작성자 이름' : getAuthorName(book);
+        setAuthorMode(anonymous, true);
+      }
+
+      $('composeTitleText').textContent = isOwner(book) ? '내가 쓴 책 이야기 수정하기' : '게시글 수정하기 (관리자)';
+      setSubmitLabel();
+      openModal('compose');
+    }
+
+    document.querySelectorAll('[data-open]').forEach((b) => {
+      b.onclick = () => {
+        if ((b.dataset.open || 'compose') === 'compose') {
+          startNewWrite();
+        } else {
+          openModal(b.dataset.open);
+        }
+      };
+    });
+    document.querySelectorAll('[data-close]').forEach((b) => {
+      b.onclick = () => closeModal(b.dataset.close);
+    });
+    document.querySelectorAll('.modal-overlay').forEach((overlay) => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('open');
+      });
+    });
+
+    function openDeleteModal(book) {
+      if (!canManage(book)) {
+        notify('이 글을 삭제할 권한이 없어요.');
+        return;
+      }
+      targetDeleteBook = book;
+      $('deleteTargetText').textContent = `'${book.title}' 글을 삭제할까요? 삭제한 글은 되돌릴 수 없어요.`;
+      openModal('deleteModal');
+      setTimeout(() => $('confirmDeleteBtn').focus(), 50);
+    }
+
+    // [삭제하기] 확인: 권한 재확인 후 Firestore 문서 삭제
+    $('deleteForm').onsubmit = async (e) => {
+      e.preventDefault();
+      if (!targetDeleteBook) return;
+      if (!canManage(targetDeleteBook)) {
+        notify('이 글을 삭제할 권한이 없어요.');
+        return;
+      }
+
+      const btn = $('confirmDeleteBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 삭제 중...';
+
+      try {
+        await deleteDoc(doc(db, COLLECTION, targetDeleteBook.id));
+        remoteBooks = remoteBooks.filter((x) => x.id !== targetDeleteBook.id);
+        targetDeleteBook = null;
+        closeModal('deleteModal');
+        closeModal('detail');
+        render();
+        notify('게시글이 삭제되었어요.');
+      } catch (err) {
+        console.error('삭제 오류:', err);
+        notify('삭제에 실패했어요. 잠시 후 다시 시도해 주세요.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-trash-can" aria-hidden="true"></i> 삭제하기';
+      }
+    };
+
+    // 새 글 등록 & 기존 글 수정 통합 처리
+    $('form').onsubmit = async (e) => {
+      e.preventDefault();
+      if (!isLoggedIn) {
+        closeModal('compose');
+        requireLogin();
+        return;
+      }
+
+      const f = e.target;
+      const get = (name) => String(f.elements[name].value || '').trim();
+      const item = {
+        title: get('title'),
+        author: get('author'),
+        category: get('category'),
+        review: get('review'),
+        reason: get('reason'),
+        difficulty: get('difficulty'),
+        evaluation: get('evaluation')
+      };
+
+      if (!item.title || !item.author || item.review.length < 10 || !item.reason || !item.difficulty || !item.evaluation) {
+        notify('모든 설문 항목을 기준에 맞게 입력해 주세요. (내용은 10자 이상)');
+        return;
+      }
+      if (!categories.includes(item.category) || item.category === '전체') item.category = '기타';
+
+      const isEdit = Boolean(editingBook);
+      if (isEdit && !canManage(editingBook)) {
+        notify('이 글을 수정할 권한이 없어요.');
+        return;
+      }
+
+      const btn = $('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = isEdit
+        ? '<i class="fa-solid fa-spinner fa-spin"></i> 수정 중...'
+        : '<i class="fa-solid fa-spinner fa-spin"></i> 등록 중...';
+
+      try {
+        if (isEdit) {
+          const update = {
+            ...item,
+            content: item.review,
+            updatedAt: serverTimestamp()
+          };
+
+          // 본인 글일 때만 작성자 표시 변경 반영 (관리자 수정 시 기존 표시 유지)
+          if (isOwner(editingBook)) {
+            const anonymous = getAnonymousChoice();
+            update.isAnonymous = anonymous;
+            update.authorName = anonymous ? '익명' : displayName();
+          }
+
+          // 표지: 새로 고른 책 표지 → 기존 표지 유지 → 자동 검색 (표지 선택 취소 시 다시 검색)
+          Object.assign(update, await resolveCover(item, editingBook));
+
+          await updateDoc(doc(db, COLLECTION, editingBook.id), update);
+
+          editingBook = null;
+          f.reset();
+          closeModal('compose');
+          await loadRemoteBooks();
+          notify('게시글이 수정되었어요!');
+          return;
+        }
+
+        // 신규 등록
+        const anonymous = getAnonymousChoice();
+        const coverInfo = await resolveCover(item, null);
+
+        await addDoc(collection(db, COLLECTION), {
+          ...item,
+          content: item.review,
+          authorId: userSession.id,
+          authorName: anonymous ? '익명' : displayName(),
+          isAnonymous: anonymous,
+          ...coverInfo,
+          date: Date.now(),
+          createdAt: serverTimestamp()
+        });
+
+        f.reset();
+        resetBookSearch(null);
+        category = '전체';
+        $('search').value = '';
+        syncTags();
+        closeModal('compose');
+        await loadRemoteBooks();
+        notify('책 이야기가 책장에 등록되었어요!');
+      } catch (err) {
+        console.error('저장 오류:', err);
+        notify(isEdit ? '수정 중 오류가 발생했어요. 다시 시도해 주세요.' : '등록 중 오류가 발생했어요. 다시 시도해 주세요.');
+      } finally {
+        btn.disabled = false;
+        setSubmitLabel();
+      }
+    };
+
+    // 비로그인 상태: 글쓰기 버튼을 로그인 안내 버튼으로 표시 (열람은 그대로 가능)
+    if (!isLoggedIn) {
+      $('openWriteBtn').innerHTML = '<i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> 로그인 후 등록하기';
+      $('openWriteBtn').title = '로그인한 학생만 책을 등록할 수 있어요';
+    }
+
+    render();
+    loadRemoteBooks();
+  </script>
+</body>
+</html>
