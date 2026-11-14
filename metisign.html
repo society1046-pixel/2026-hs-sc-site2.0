@@ -174,8 +174,10 @@
                 • <span class="highlight">하나의 시간에는 하나의 종류만 할 수 있고, 주 각 자습별 1회만 신청할 수 있습니다.</span><br>
                 • 월요일~금요일(수요일 제외) 중 1회만 참여 가능합니다.<br>
                 • 각 교시당 1:1로 구성되며, 최대 5팀까지 가능합니다.(멘토멘티)<br>
+                • <span class="highlight">멘토멘티는 멘토·멘티 역할과 관계없이 1인당 주 1회만 참여할 수 있습니다. (역할을 바꾸거나 다른 멘토/멘티와 재신청 불가)</span><br>
                 • 홈베이스 자습의 경우 12명까지 가능합니다.<br>
-                • <span class="highlight">수정을 원하실 경우, 명단 탭에서 기존 내역을 '삭제'한 후 다시 신청해주세요.</span>
+                • <span class="highlight">수정을 원하실 경우, 명단 탭에서 기존 내역을 '삭제'한 후 다시 신청해주세요.</span><br>
+                • <span class="highlight">이미 지난 날짜(당일은 18:50 활동 시작 이후)의 신청은 신청·수정·삭제할 수 없습니다.</span>
             </div>
 
             <div class="form-group">
@@ -245,6 +247,28 @@
 
     window.weekDatesList = [];
 
+    // ==========================================
+    // [지난 날짜 잠금] 활동 시작(1교시 18:50)이 지난 날짜는 신청/수정/삭제 불가
+    // ==========================================
+    const ACTIVITY_START_HHMM = "18:50";
+
+    function getTodayString() {
+        const now = new Date();
+        return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+    }
+
+    window.isDateLocked = function(dateString) {
+        if (!dateString) return true;
+        const todayStr = getTodayString();
+        if (dateString < todayStr) return true;
+        if (dateString === todayStr) {
+            const now = new Date();
+            const currentHHMM = String(now.getHours()).padStart(2, '0') + ":" + String(now.getMinutes()).padStart(2, '0');
+            return currentHHMM >= ACTIVITY_START_HHMM;
+        }
+        return false;
+    };
+
     function setupDateDropdown() {
         const dateSelect = document.getElementById('applyDate');
         let optionsHtml = '<option value="">선택하세요</option>';
@@ -268,7 +292,8 @@
                 const dateString = `${yyyy}${mm}${dd}`; 
                 const displayString = `${dayNames[i]}요일 (${mm}/${dd})`; 
                 window.weekDatesList.push({ date: dateString, day: dayNames[i], display: displayString }); 
-                optionsHtml += `<option value="${dateString}|${dayNames[i]}">${displayString}</option>`;
+                const locked = window.isDateLocked(dateString);
+                optionsHtml += `<option value="${dateString}|${dayNames[i]}"${locked ? ' disabled' : ''}>${displayString}${locked ? ' (마감)' : ''}</option>`;
             }
         }
         dateSelect.innerHTML = optionsHtml;
@@ -409,6 +434,7 @@
                 
                 window.menteeData[slot].id = mId; 
                 window.menteeData[slot].name = mName;
+                window.menteeData[slot].studentNumber = userData.studentNumber || inputStudentNum;
             } else {
                 msgLabel.innerText = "❌ 가입되지 않은 학번이거나 정보가 없습니다.";
                 msgLabel.style.color = "#EF4444";
@@ -422,20 +448,89 @@
         }
     };
 
-    async function checkWeeklyTypeLimits(targetDateString) {
-        let hasHomebase = false;
-        let hasMentor = false;
-        for (const info of window.weekDatesList) {
-            if (info.date === targetDateString) continue; 
-            const docId = `${info.date}_${info.day}_${window.currentUserId}`;
-            const existingDoc = await getDoc(doc(db, "study_applications", docId));
-            if (existingDoc.exists()) {
-                const data = existingDoc.data();
-                if (data.slot1_type === 'homebase' || data.slot2_type === 'homebase') hasHomebase = true;
-                if (data.slot1_type === 'mentor' || data.slot2_type === 'mentor') hasMentor = true;
+    // 같은 사람인지 판별 (회원 ID 또는 학번 중 하나라도 일치하면 동일인)
+    function isSamePerson(aId, aNum, bId, bNum) {
+        if (aId && bId && String(aId) === String(bId)) return true;
+        if (aNum && bNum && String(aNum) === String(bNum)) return true;
+        return false;
+    }
+
+    // ==========================================
+    // [주간 참여 제한 검사 - 사람 기준]
+    // 신청자가 '작성한' 기록뿐 아니라 '멘티로 등록된' 기록까지 모두 확인
+    // ==========================================
+    async function checkWeeklyTypeLimits(targetDateString, targetDay) {
+        const result = { homebase: false, mentor: false, message: '' };
+        const weekDates = window.weekDatesList.map(info => info.date);
+        if (weekDates.length === 0) return result;
+
+        // 지금 덮어쓰게 될 본인의 같은 날짜 기록만 검사에서 제외
+        const myDocId = `${targetDateString}_${targetDay}_${window.currentUserId}`;
+        const snap = await getDocs(query(collection(db, "study_applications"), where("applyDate", "in", weekDates)));
+
+        const meId = window.currentUserId;
+        const meNum = userStudentNumber;
+        const mySlotBusyAsMentee = { 1: false, 2: false };
+
+        const mentees = {};
+        [1, 2].forEach(s => {
+            if (window.selections[s] === 'mentor') {
+                mentees[s] = {
+                    id: window.menteeData[s].id,
+                    num: window.menteeData[s].studentNumber || '',
+                    name: window.menteeData[s].name,
+                    used: false,
+                    slotBusy: false
+                };
             }
-        }
-        return { homebase: hasHomebase, mentor: hasMentor };
+        });
+
+        snap.forEach(docSnap => {
+            if (docSnap.id === myDocId) return;
+            const data = docSnap.data();
+            const isMine = isSamePerson(meId, meNum, data.id, data.studentNumber);
+
+            [1, 2].forEach(s => {
+                const type = data[`slot${s}_type`];
+                if (!type) return;
+                const pId = data[`slot${s}_partnerId`];
+                const pNum = data[`slot${s}_partnerStudentNumber`];
+
+                // 신청자 본인이 작성한 기록
+                if (isMine) {
+                    if (type === 'homebase') result.homebase = true;
+                    if (type === 'mentor') result.mentor = true;
+                }
+                // 신청자 본인이 다른 학생의 멘티로 등록된 기록
+                if (type === 'mentor' && isSamePerson(meId, meNum, pId, pNum)) {
+                    result.mentor = true;
+                    if (data.applyDate === targetDateString) mySlotBusyAsMentee[s] = true;
+                }
+
+                // 선택한 멘티의 참여 기록
+                Object.keys(mentees).forEach(ms => {
+                    const m = mentees[ms];
+                    const menteeIsAuthor = isSamePerson(m.id, m.num, data.id, data.studentNumber);
+                    const menteeIsPartner = (type === 'mentor' && isSamePerson(m.id, m.num, pId, pNum));
+                    if ((menteeIsAuthor && type === 'mentor') || menteeIsPartner) m.used = true;
+                    if (data.applyDate === targetDateString && String(s) === String(ms) && (menteeIsAuthor || menteeIsPartner)) m.slotBusy = true;
+                });
+            });
+        });
+
+        const msgs = [];
+        [1, 2].forEach(s => {
+            if (mySlotBusyAsMentee[s] && window.selections[s] !== 'none') {
+                msgs.push(`${s}교시에는 이미 다른 학생의 멘티로 신청되어 있어 다른 활동을 신청할 수 없습니다.`);
+            }
+        });
+        Object.keys(mentees).forEach(ms => {
+            const m = mentees[ms];
+            if (m.used) msgs.push(`${ms}교시 멘티 ${m.name}님은 이번 주에 이미 멘토멘티(멘토 또는 멘티)에 참여 중입니다.`);
+            else if (m.slotBusy) msgs.push(`${ms}교시 멘티 ${m.name}님은 해당 날짜 ${ms}교시에 이미 다른 활동을 신청했습니다.`);
+        });
+        result.message = msgs.join('\n');
+        return result;
     }
 
     window.submitApplication = async function() {
@@ -456,6 +551,9 @@
         const dateVal = document.getElementById('applyDate').value;
         if(!dateVal) return alert("참여를 희망하는 요일과 날짜를 선택해주세요.");
         const [yyyyMMdd, dayName] = dateVal.split('|');
+        if (window.isDateLocked(yyyyMMdd)) {
+            return alert("⛔ 이미 지난 날짜(당일은 18:50 활동 시작 이후)에는 신청하거나 수정할 수 없습니다.");
+        }
 
         if(window.selections[1] === 'none' && window.selections[2] === 'none') {
             return alert("1교시와 2교시 중 최소 하나 이상의 활동을 선택해주세요.");
@@ -468,13 +566,17 @@
         btn.disabled = true;
 
         try {
-            const weeklyHistory = await checkWeeklyTypeLimits(yyyyMMdd);
+            const weeklyHistory = await checkWeeklyTypeLimits(yyyyMMdd, dayName);
             if ((window.selections[1] === 'homebase' || window.selections[2] === 'homebase') && weeklyHistory.homebase) {
                 alert("⚠️ 홈베이스는 일주일에 단 1회만 신청 가능합니다.");
                 btn.innerText = "신청 완료하기"; btn.disabled = false; return;
             }
             if ((window.selections[1] === 'mentor' || window.selections[2] === 'mentor') && weeklyHistory.mentor) {
-                alert("⚠️ 멘토멘티는 일주일에 단 1회만 신청 가능합니다.");
+                alert("⚠️ 멘토멘티는 멘토·멘티 역할과 관계없이 일주일에 단 1회만 참여 가능합니다.\n(이번 주에 이미 멘토 또는 멘티로 신청된 내역이 있습니다.)");
+                btn.innerText = "신청 완료하기"; btn.disabled = false; return;
+            }
+            if (weeklyHistory.message) {
+                alert("⚠️ " + weeklyHistory.message);
                 btn.innerText = "신청 완료하기"; btn.disabled = false; return;
             }
 
@@ -508,11 +610,11 @@
 
             if (window.selections[1] !== 'none') {
                 payload.slot1_type = window.selections[1];
-                if (window.selections[1] === 'mentor') { payload.slot1_partnerId = window.menteeData[1].id; payload.slot1_partnerName = window.menteeData[1].name; }
+                if (window.selections[1] === 'mentor') { payload.slot1_partnerId = window.menteeData[1].id; payload.slot1_partnerName = window.menteeData[1].name; payload.slot1_partnerStudentNumber = window.menteeData[1].studentNumber || ''; }
             }
             if (window.selections[2] !== 'none') {
                 payload.slot2_type = window.selections[2];
-                if (window.selections[2] === 'mentor') { payload.slot2_partnerId = window.menteeData[2].id; payload.slot2_partnerName = window.menteeData[2].name; }
+                if (window.selections[2] === 'mentor') { payload.slot2_partnerId = window.menteeData[2].id; payload.slot2_partnerName = window.menteeData[2].name; payload.slot2_partnerStudentNumber = window.menteeData[2].studentNumber || ''; }
             }
 
             await setDoc(doc(db, "study_applications", docId), payload);
@@ -531,6 +633,14 @@
     // [삭제 기능]
     // ==========================================
     window.deleteApp = async function(applyDate, applyDay, studentId) {
+        if (!isAdmin && !isTeacher) {
+            if (String(studentId) !== String(window.currentUserId)) {
+                return alert("본인의 신청 내역만 삭제할 수 있습니다.");
+            }
+            if (window.isDateLocked(applyDate)) {
+                return alert("⛔ 이미 지난 날짜(당일은 18:50 활동 시작 이후)의 신청 내역은 삭제할 수 없습니다.");
+            }
+        }
         if(!confirm("해당 신청 내역을 정말 삭제하시겠습니까?\n(수정을 원하시는 경우 삭제 후 다시 신청해주세요)")) return;
         
         try {
@@ -607,8 +717,10 @@
                         else if(data.slot2_type === 'mentor') slot2_html = `<span class="badge badge-mentor">멘토멘티</span><br><span style="font-size:11px; color:#64748B;">(w/ ${data.slot2_partnerName})</span>`;
 
                         let manage_html = '<span style="color:#CBD5E1;">-</span>';
-                        if (data.id === window.currentUserId || isAdmin || isTeacher) {
+                        if (isAdmin || isTeacher || (data.id === window.currentUserId && !window.isDateLocked(data.applyDate))) {
                             manage_html = `<button class="btn-delete" onclick="deleteApp('${data.applyDate}', '${data.applyDay}', '${data.id}')"><i class="fa-solid fa-trash"></i> 삭제</button>`;
+                        } else if (data.id === window.currentUserId) {
+                            manage_html = '<span style="font-size:11px; color:#94A3B8;"><i class="fa-solid fa-lock"></i> 삭제 불가</span>';
                         }
                         
                         let dispStudentNumber = data.studentNumber || data.id;
