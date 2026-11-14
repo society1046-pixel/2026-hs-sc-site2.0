@@ -11,7 +11,666 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <script src="head.js"></script>
+    <script>
+const headerHTML = `
+<style>
+    /* 공통 헤더 및 네비게이션 바 스타일 */
+    header {
+        position: sticky;
+        top: 0;
+        width: 100%;
+        background-color: #FFFFFF;
+        border-bottom: 1px solid #F5F5F5;
+        z-index: 1000;
+    }
+    /* 원래 디자인 유지: max-width 1200px 복구 */
+    .nav-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-decoration: none;
+        flex-shrink: 0;
+    }
+    .nav-left img {
+        height: 40px;
+        width: auto;
+        object-fit: contain;
+    }
+    .nav-left .logo-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #111111;
+        letter-spacing: -0.5px;
+        white-space: nowrap;
+    }
+    
+    /* 원래 디자인 유지: nav-center 기본 배치 복구 */
+    .nav-center {
+        display: flex;
+        gap: 15px; 
+        height: 100%;
+    }
+    .nav-item {
+        position: relative;
+        display: flex;
+        align-items: center;
+        height: 100%;
+    }
+    .nav-item > a {
+        font-size: 15px;
+        font-weight: 500;
+        color: #666666;
+        transition: color 0.2s ease;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+    }
+    .nav-item > a i {
+        font-size: 12px;
+        transition: transform 0.2s ease;
+    }
+    .nav-item:hover > a {
+        color: #7BA4DB;
+    }
+    .nav-item:hover > a i {
+        transform: rotate(180deg);
+    }
+    
+    .nav-item:hover > a i.no-rotate {
+        transform: none;
+    }
+
+    .dropdown-content {
+        position: absolute;
+        top: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #FFFFFF;
+        min-width: 120px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+        border-radius: 8px;
+        border: 1px solid #EEEEEE;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        padding: 10px 0;
+        z-index: 1001;
+    }
+    .nav-item:hover .dropdown-content {
+        opacity: 1;
+        visibility: visible;
+        top: 75px;
+    }
+    
+    .dropdown-subheader {
+        display: block;
+        padding: 12px 20px 4px 20px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #333333;
+        background-color: #F8FAFC;
+        cursor: default;
+        text-align: center;
+        margin-top: 5px;
+        border-top: 1px solid #F0F0F0;
+    }
+    .dropdown-subheader:first-child {
+        margin-top: 0;
+        border-top: none;
+    }
+
+    .dropdown-content a {
+        color: #555555;
+        padding: 10px 20px;
+        font-size: 14px;
+        text-decoration: none;
+        font-weight: 400;
+        text-align: center;
+        transition: background-color 0.2s, color 0.2s;
+        white-space: nowrap;
+    }
+    .dropdown-content a:hover {
+        background-color: #F8FAFC;
+        color: #7BA4DB;
+        font-weight: 500;
+    }
+    
+    .nav-right {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-shrink: 0;
+    }
+    
+    .auth-btn {
+        background-color: transparent;
+        border: 1px solid #7BA4DB;
+        color: #7BA4DB;
+        padding: 8px 22px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .auth-btn:hover {
+        background-color: #7BA4DB;
+        color: #FFFFFF;
+    }
+
+    /* 🌟 핵심 해결: 프로필을 세로(2줄)로 배치하여 가로 공간 차지 최소화 */
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .profile-link-compact {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: background-color 0.2s;
+    }
+    .profile-link-compact:hover {
+        background-color: #F8FAFC;
+    }
+    .profile-avatar {
+        font-size: 26px;
+        color: #94A3B8;
+    }
+    .profile-text-wrap {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.3;
+    }
+    .profile-role {
+        font-size: 11px;
+        color: #64748B;
+        white-space: nowrap;
+    }
+    .profile-name {
+        font-size: 14px;
+        color: #0F172A;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .profile-name span {
+        font-size: 13px;
+        font-weight: 400;
+    }
+    
+    /* 깔끔한 미니 로그아웃 버튼 */
+    .logout-btn-compact {
+        background: transparent;
+        border: 1px solid #E2E8F0;
+        padding: 6px 12px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #64748B;
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+    .logout-btn-compact:hover {
+        background: #F1F5F9;
+        color: #0F172A;
+    }
+
+    .admin-btn {
+        border-color: #FECACA !important;
+        color: #EF4444 !important;
+        background-color: #FEF2F2 !important;
+        border-radius: 20px !important;
+        padding: 6px 14px !important;
+        font-size: 12px !important;
+    }
+    .admin-btn:hover {
+        background-color: #EF4444 !important;
+        color: #FFFFFF !important;
+    }
+
+    /* 모바일 사용자 카드 */
+    .mobile-user-card {
+        background-color: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+    .mobile-user-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .mobile-user-avatar {
+        width: 40px;
+        height: 40px;
+        background-color: #EBF3FA;
+        color: #7BA4DB;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+    .mobile-user-info-text {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .mobile-user-name {
+        font-size: 15px;
+        font-weight: 600;
+        color: #1E293B;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .mobile-role-badge {
+        font-size: 11px;
+        font-weight: 600;
+        color: #4A72B0;
+        background-color: #FFFFFF;
+        border: 1px solid #D5E3F6;
+        padding: 3px 9px;
+        border-radius: 20px;
+        white-space: nowrap;
+        align-self: flex-start;
+    }
+    .mobile-user-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 4px;
+    }
+
+    .menu-toggle {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #333333;
+    }
+
+    .sidebar {
+        position: fixed; top: 0; right: -280px; width: 280px; height: 100%;
+        background-color: #FFFFFF; box-shadow: -5px 0 25px rgba(0,0,0,0.03);
+        z-index: 2000; transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 30px 25px; display: flex; flex-direction: column; gap: 20px; overflow-y: auto;
+    }
+    .sidebar.active { right: 0; }
+    .sidebar-close { align-self: flex-end; background: none; border: none; font-size: 24px; cursor: pointer; color: #666666; }
+    
+    .sidebar-menu { display: flex; flex-direction: column; gap: 10px; }
+    .mobile-nav-item { display: flex; flex-direction: column; }
+    .mobile-nav-link { display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 500; color: #333333; padding: 12px 0; border-bottom: 1px solid #F0F0F0; text-decoration: none; cursor: pointer; }
+    .mobile-nav-link i { font-size: 12px; color: #999; transition: transform 0.3s ease; }
+    
+    .mobile-dropdown-content { display: none; flex-direction: column; background-color: #F8FAFC; border-radius: 6px; padding: 10px 15px; margin-top: 5px; gap: 10px; }
+    
+    .mobile-dropdown-subheader {
+        display: block;
+        padding: 10px 0 2px 0;
+        font-size: 14px;
+        font-weight: 700;
+        color: #333333;
+        cursor: default;
+        border-bottom: 1px solid #E2E8F0;
+        margin-top: 5px;
+    }
+    .mobile-dropdown-subheader:first-child {
+        margin-top: 0;
+    }
+
+    .mobile-dropdown-content a { font-size: 14px; color: #555555; text-decoration: none; padding: 5px 0; padding-left: 10px;}
+    .mobile-dropdown-content a:hover { color: #7BA4DB; font-weight: 500; }
+    
+    .mobile-nav-item.open .mobile-dropdown-content { display: flex; }
+    .mobile-nav-item.open .mobile-nav-link i { transform: rotate(180deg); }
+
+    .sidebar-auth { padding-bottom: 20px; border-bottom: 1px solid #F0F0F0; }
+    .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.15); z-index: 1999; display: none; }
+    .sidebar-overlay.active { display: block; }
+
+    /* 원래 모바일 분기점 1024px 복구 */
+    @media (max-width: 1024px) {
+        .nav-center { display: none; }
+        .auth-container-desktop { display: none; }
+        .menu-toggle { display: block; }
+    }
+</style>
+
+<header>
+    <div class="nav-container">
+        <a href="index.html" class="nav-left">
+            <img src="https://drive.google.com/thumbnail?id=1-vFaLyktqvl_ywa0BpiBppSI6lEgsKDd&sz=w200" alt="로고">
+            <span class="logo-title">형석고 학생회</span>
+        </a>
+
+        <nav class="nav-center">
+            <div class="nav-item">
+                <a href="#">알림 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="anno.html">공지사항</a>
+                    <a href="frinfo.html">자유게시판</a>
+                </div>
+            </div>
+            
+            <div class="nav-item">
+                <a href="#">학년부 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <!-- 1학년부 -->
+                    <span class="dropdown-subheader">1학년부</span>
+                    <!-- 여기에 1학년부 관련 <a> 태그 추가 -->
+
+                    <!-- 2학년부 -->
+                    <span class="dropdown-subheader">2학년부</span>
+                    <a href="metisign.html">멘토멘티/홈베이스 신청</a>
+                    <a href="metiset.html">멘토멘티 신청관리</a>
+
+                    <!-- 3학년부 -->
+                    <span class="dropdown-subheader">3학년부</span>
+                    <!-- 여기에 3학년부 관련 <a> 태그 추가 -->
+                </div>
+            </div>
+            
+            <div class="nav-item">
+                <a href="#">회장단 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="preinfo.html">부서 정보</a>
+                </div>
+            </div>
+            <div class="nav-item">
+                <a href="#">홍보미디어부 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="adinfo.html">부서 정보</a>
+                    <a href="survey.html">설문조사</a>
+                </div>
+            </div>
+            <div class="nav-item">
+                <a href="#">문화소통부 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="culinfo.html">부서 정보</a>
+                </div>
+            </div>
+            <div class="nav-item">
+                <a href="#">건강안전부 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="healthinfo.html">부서 정보</a>
+                </div>
+            </div>
+            <div class="nav-item">
+                <a href="#">학술문예부 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="stuinfo.html">부서 정보</a>
+                    <a href="hsaca.html">학술 아카이브</a>
+                    <a href="freebook.html">형석프리북스</a>
+                </div>
+            </div>
+            <div class="nav-item">
+                <a href="#">환경보호부 <i class="fa-solid fa-chevron-down"></i></a>
+                <div class="dropdown-content">
+                    <a href="envinfo.html">부서 정보</a>
+                </div>
+            </div>
+            
+            <!-- 점 3개(기타) 드롭다운 메뉴 -->
+            <div class="nav-item">
+                <a href="#" style="padding-left: 5px;"><i class="fa-solid fa-ellipsis no-rotate" style="font-size: 18px;"></i></a>
+                <div class="dropdown-content" style="min-width: 130px;">
+                    <span class="dropdown-subheader">기타</span>
+                    <a href="baseinfo.html">사이트 정보</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="nav-right">
+            <div class="auth-container-desktop" id="authContainerDesktop">
+                <button class="auth-btn" onclick="location.href='login.html'">로그인</button>
+            </div>
+            
+            <button class="menu-toggle" id="menuToggleBtn">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+    </div>
+</header>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<aside class="sidebar" id="sidebarMenu">
+    <button class="sidebar-close" id="sidebarCloseBtn"><i class="fa-solid fa-xmark"></i></button>
+    
+    <div class="sidebar-auth" id="authContainerMobile">
+        <button class="auth-btn" style="width: 100%;" onclick="location.href='login.html'">로그인</button>
+    </div>
+
+    <nav class="sidebar-menu">
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">알림 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="anno.html" onclick="closeSidebar()">공지사항</a>
+                <a href="frinfo.html" onclick="closeSidebar()">자유게시판</a>
+            </div>
+        </div>
+        
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">학년부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <span class="mobile-dropdown-subheader">1학년부</span>
+                <!-- 여기에 1학년부 관련 <a> 태그 추가 -->
+
+                <span class="mobile-dropdown-subheader">2학년부</span>
+                <a href="metisign.html" onclick="closeSidebar()">멘토멘티/홈베이스 신청</a>
+                <a href="metiset.html" onclick="closeSidebar()">멘토멘티 신청관리</a>
+
+                <span class="mobile-dropdown-subheader">3학년부</span>
+                <!-- 여기에 3학년부 관련 <a> 태그 추가 -->
+            </div>
+        </div>
+        
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">회장단 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="preinfo.html" onclick="closeSidebar()">부서 정보</a>
+            </div>
+        </div>
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">홍보미디어부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="adinfo.html" onclick="closeSidebar()">부서 정보</a>
+                <a href="survey.html" onclick="closeSidebar()">설문조사</a>
+            </div>
+        </div>
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">문화소통부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="culinfo.html" onclick="closeSidebar()">부서 정보</a>
+            </div>
+        </div>
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">건강안전부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="healthinfo.html" onclick="closeSidebar()">부서 정보</a>
+            </div>
+        </div>
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">학술문예부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="stuinfo.html" onclick="closeSidebar()">부서 정보</a>
+                <a href="hsaca.html" onclick="closeSidebar()">학술 아카이브</a>
+                <a href="freebook.html" onclick="closeSidebar()">형석프리북스</a>
+            </div>
+        </div>
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">환경보호부 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="envinfo.html" onclick="closeSidebar()">부서 정보</a>
+            </div>
+        </div>
+        
+        <div class="mobile-nav-item">
+            <div class="mobile-nav-link" onclick="toggleMobileDropdown(this)">기타 <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="mobile-dropdown-content">
+                <a href="baseinfo.html" onclick="closeSidebar()">사이트 정보</a>
+            </div>
+        </div>
+    </nav>
+</aside>
+`;
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.body.insertAdjacentHTML('afterbegin', headerHTML);
+
+    const menuToggleBtn = document.getElementById('menuToggleBtn');
+    const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    if (menuToggleBtn) menuToggleBtn.addEventListener('click', openSidebar);
+    if (sidebarCloseBtn) sidebarCloseBtn.addEventListener('click', closeSidebar);
+    if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
+
+    checkLoginState();
+});
+
+function checkLoginState() {
+    const userSession = JSON.parse(localStorage.getItem('userSession'));
+    
+    const roleMapping = {
+        'student': '일반학생',
+        '학생': '일반학생',
+        'student_council': '학생회 임원',
+        'class_president': '반장',
+        'vice_president': '부반장',
+        'president': '전교회장',
+        'dept_head': '부장', 
+        'dept_vice': '차장',
+        'teacher': '선생님',
+        'admin': '시스템 관리자'
+    };
+
+    const deptMapping = {
+        'none': '',
+        '': '',
+        'executives': '회장단',
+        'content_comm': '홍보미디어부',
+        'culture_comm': '문화소통부',
+        'health_act': '건강안전부',
+        'academic_art': '학술문예부',
+        'safety_life': '환경보호부'
+    };
+
+    const desktopContainer = document.getElementById('authContainerDesktop');
+    const mobileContainer = document.getElementById('authContainerMobile');
+
+    if (userSession) {
+        let parsedRole = roleMapping[userSession.role] || '일반학생';
+        let parsedDept = deptMapping[userSession.department] || '';
+        let finalRoleText = parsedDept ? `${parsedDept} ${parsedRole}` : parsedRole;
+        
+        let adminButtonDesktop = '';
+        let adminButtonMobile = '';
+        if (userSession.role === 'admin') {
+            adminButtonDesktop = `<button class="auth-btn admin-btn" onclick="location.href='logset.html'"><i class="fa-solid fa-gear"></i></button>`;
+            adminButtonMobile = `<button class="auth-btn admin-btn" style="flex: 1; padding: 8px;" onclick="location.href='logset.html'"><i class="fa-solid fa-gear"></i> 회원관리</button>`;
+        }
+        
+        // 🌟 PC: 직책과 이름을 상하 2줄로 배치하여 가로 넓이 문제를 완벽 해결
+        if (desktopContainer) {
+            desktopContainer.innerHTML = `
+                <div class="user-info">
+                    ${adminButtonDesktop}
+                    <a href="setaco.html" class="profile-link-compact">
+                        <i class="fa-solid fa-circle-user profile-avatar"></i>
+                        <div class="profile-text-wrap">
+                            <span class="profile-role">${finalRoleText}</span>
+                            <span class="profile-name">${userSession.name || userSession.id}<span>님</span></span>
+                        </div>
+                    </a>
+                    <button class="logout-btn-compact" onclick="logout()">로그아웃</button>
+                </div>
+            `;
+        }
+        
+        if (mobileContainer) {
+            mobileContainer.innerHTML = `
+                <div class="mobile-user-card">
+                    <div class="mobile-user-header">
+                        <div class="mobile-user-avatar">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <div class="mobile-user-info-text">
+                            <a href="setaco.html" class="mobile-user-name" onclick="closeSidebar()">
+                                <b>${userSession.name || userSession.id}</b>님
+                                <i class="fa-solid fa-angle-right" style="font-size:12px; color:#94A3B8;"></i>
+                            </a>
+                            <span class="mobile-role-badge">${finalRoleText}</span>
+                        </div>
+                    </div>
+                    <div class="mobile-user-actions">
+                        ${adminButtonMobile}
+                        <button class="logout-btn-compact" style="flex: 1; padding: 8px; font-size:13px;" onclick="logout()">로그아웃</button>
+                    </div>
+                </div>
+            `;
+        }
+    }
+}
+
+window.logout = function() {
+    localStorage.removeItem('userSession');
+    alert("로그아웃 되었습니다.");
+    window.location.reload(); 
+};
+
+function openSidebar() {
+    const sidebarMenu = document.getElementById('sidebarMenu');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    if(sidebarMenu && sidebarOverlay) {
+        sidebarMenu.classList.add('active');
+        sidebarOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+window.closeSidebar = function() {
+    const sidebarMenu = document.getElementById('sidebarMenu');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    if(sidebarMenu && sidebarOverlay) {
+        sidebarMenu.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+window.toggleMobileDropdown = function(element) {
+    const parentItem = element.parentElement;
+    parentItem.classList.toggle('open');
+}
+</script>
 
     <style>
         /* 기본 스타일 리셋 */
@@ -352,6 +1011,385 @@
             .footer-btn { width: 100%; max-width: 340px; padding: 12px 20px; font-size: 13px; }
         }
     </style>
+    <!-- ===== [추가] 오늘의 학교 생활(급식 · 시간표 · 버스) 전용 스타일 — 기존 스타일은 변경하지 않음 ===== -->
+    <style id="hs-daily-style">
+        .hs-daily { margin-bottom: 80px; }
+        .hs-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 56px 36px;
+            align-items: start;
+        }
+        .hs-block { min-width: 0; }
+        .hs-block-wide { grid-column: 1 / -1; }
+        .hs-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #333333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .hs-title h2 { font-size: 19px; font-weight: 700; color: #111111; }
+        .hs-title h2 i { color: #7BA4DB; margin-right: 4px; }
+        .hs-sub { font-size: 13px; color: #888888; }
+        .hs-clock { font-variant-numeric: tabular-nums; font-weight: 500; color: #555555; }
+        .hs-note { font-size: 12px; color: #999999; line-height: 1.7; margin-top: 12px; }
+        .hs-empty, .hs-loading, .hs-error {
+            font-size: 14px;
+            color: #A0A0A0;
+            padding: 26px 0;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .hs-error { color: #C0504D; }
+        .hs-retry {
+            display: inline-block;
+            margin-top: 8px;
+            background: none;
+            border: 1px solid #DDDDDD;
+            border-radius: 4px;
+            padding: 5px 12px;
+            font-size: 12px;
+            color: #555555;
+            cursor: pointer;
+        }
+        .hs-retry:hover { background: #F5F5F5; }
+        .hs-nav {
+            flex-shrink: 0;
+            width: 34px;
+            height: 34px;
+            background: #FFFFFF;
+            border: 1px solid #DDDDDD;
+            border-radius: 50%;
+            color: #555555;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .hs-nav:hover { background: #F5F5F5; }
+
+        /* ---------- 급식 ---------- */
+        .hs-weekbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+        .hs-days {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 8px;
+        }
+        .hs-day {
+            background: #FFFFFF;
+            border: 1px solid #EEEEEE;
+            border-radius: 8px;
+            padding: 8px 4px;
+            cursor: pointer;
+            color: #666666;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            transition: 0.2s;
+        }
+        .hs-day span { font-size: 12px; }
+        .hs-day b { font-size: 15px; font-weight: 700; color: #333333; }
+        .hs-day:hover { border-color: #7BA4DB; }
+        .hs-day.is-today span::after { content: ' · 오늘'; color: #7BA4DB; font-weight: 700; }
+        .hs-day.is-active { background: #7BA4DB; border-color: #7BA4DB; color: #FFFFFF; }
+        .hs-day.is-active b, .hs-day.is-active span::after { color: #FFFFFF; }
+        .hs-meal-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+        .hs-meal-card {
+            border: 1px solid #EEEEEE;
+            border-top: 4px solid var(--meal, #7BA4DB);
+            border-radius: 8px;
+            padding: 18px 20px;
+            background: #FFFFFF;
+            min-height: 220px;
+        }
+        .hs-lunch { --meal: #F2A541; --meal-soft: #FFF6E8; }
+        .hs-dinner { --meal: #7B83DB; --meal-soft: #F0F1FD; }
+        .hs-meal-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .hs-meal-tag { font-size: 16px; font-weight: 700; color: #222222; }
+        .hs-meal-tag i { color: var(--meal); margin-right: 4px; }
+        .hs-meal-tag small { font-size: 12px; font-weight: 400; color: #A0A0A0; margin-left: 4px; }
+        .hs-now {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--meal);
+            background: var(--meal-soft);
+            border-radius: 20px;
+            padding: 2px 8px;
+        }
+        .hs-kcal { margin-left: auto; font-size: 12px; color: #999999; }
+        .hs-menu { list-style: none; display: flex; flex-direction: column; }
+        .hs-menu li {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px dashed #F0F0F0;
+            font-size: 15px;
+            color: #444444;
+        }
+        .hs-menu li:last-child { border-bottom: 0; }
+        .hs-allergy { flex-shrink: 0; font-size: 11px; color: #B5B5B5; font-variant-numeric: tabular-nums; }
+        .hs-allergy-guide { margin-top: 12px; font-size: 12px; color: #999999; }
+        .hs-allergy-guide summary { cursor: pointer; width: fit-content; }
+        .hs-allergy-guide p { margin-top: 6px; line-height: 1.8; }
+
+        /* ---------- 시간표 ---------- */
+        .hs-tt-tools {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .hs-weeknav { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; color: #444444; }
+        .hs-class-pick { display: flex; gap: 6px; }
+        .hs-class-pick select {
+            border: 1px solid #DDDDDD;
+            border-radius: 4px;
+            padding: 6px 8px;
+            font-size: 13px;
+            color: #444444;
+            background: #FFFFFF;
+            font-family: inherit;
+        }
+        .hs-tt-wrap { overflow-x: auto; border: 1px solid #EEEEEE; border-radius: 8px; }
+        .hs-tt {
+            width: 100%;
+            min-width: 420px;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 13px;
+        }
+        .hs-tt th, .hs-tt td {
+            border-bottom: 1px solid #F2F2F2;
+            border-right: 1px solid #F2F2F2;
+            padding: 9px 4px;
+            text-align: center;
+            word-break: keep-all;
+            overflow-wrap: anywhere;
+        }
+        .hs-tt th:last-child, .hs-tt td:last-child { border-right: 0; }
+        .hs-tt tr:last-child td, .hs-tt tr:last-child th { border-bottom: 0; }
+        .hs-tt thead th { background: #FAFAFA; font-weight: 700; color: #444444; }
+        .hs-tt thead th small { display: block; font-size: 11px; font-weight: 400; color: #A0A0A0; }
+        .hs-tt tbody th { width: 46px; color: #999999; font-weight: 500; background: #FAFAFA; }
+        .hs-tt thead th:first-child { width: 46px; }
+        .hs-tt td { color: #444444; line-height: 1.4; }
+        .hs-tt td.is-blank { color: #D0D0D0; }
+        .hs-tt .is-today { background: #F1F6FD; }
+        .hs-tt thead th.is-today { background: #7BA4DB; color: #FFFFFF; }
+        .hs-tt thead th.is-today small { color: #EAF1FB; }
+        .hs-lock {
+            border: 1px dashed #DDDDDD;
+            border-radius: 8px;
+            padding: 36px 20px;
+            text-align: center;
+            color: #777777;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .hs-lock > i { font-size: 26px; color: #7BA4DB; }
+        .hs-lock strong { font-size: 15px; color: #333333; }
+        .hs-lock p { font-size: 13px; line-height: 1.6; }
+        .hs-btn {
+            margin-top: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #7BA4DB;
+            color: #FFFFFF;
+            border-radius: 4px;
+            padding: 9px 18px;
+            font-size: 14px;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+        .hs-btn:hover { background: #648FC9; }
+
+        /* ---------- 버스 ---------- */
+        .hs-bus-list { display: flex; flex-direction: column; gap: 14px; }
+        .hs-bus-card {
+            border: 1px solid #EEEEEE;
+            border-radius: 8px;
+            padding: 16px 18px;
+            background: #FFFFFF;
+        }
+        .hs-bus-top { display: flex; align-items: center; gap: 12px; }
+        .hs-bus-no {
+            flex-shrink: 0;
+            min-width: 54px;
+            text-align: center;
+            background: var(--bus);
+            color: #FFFFFF;
+            font-weight: 800;
+            font-size: 18px;
+            border-radius: 6px;
+            padding: 5px 8px;
+        }
+        .hs-bus-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .hs-bus-info strong { font-size: 14px; color: #333333; }
+        .hs-bus-info span { font-size: 12px; color: #999999; }
+        .hs-bus-count {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 8px;
+            margin: 14px 0 8px;
+            flex-wrap: wrap;
+        }
+        .hs-count-label { font-size: 13px; color: #777777; }
+        .hs-count {
+            font-size: 30px;
+            font-weight: 800;
+            color: #222222;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -1px;
+        }
+        .hs-count small { font-size: 14px; font-weight: 500; color: #888888; margin: 0 4px 0 2px; }
+        .hs-bus-card.is-soon .hs-count { color: #E5484D; }
+        .hs-bus-card.is-ended .hs-count { font-size: 22px; color: #888888; }
+        .hs-progress { height: 6px; background: #F1F1F1; border-radius: 6px; overflow: hidden; }
+        .hs-progress i {
+            display: block;
+            height: 100%;
+            width: 0;
+            background: var(--bus);
+            border-radius: 6px;
+            transition: width 0.9s linear;
+        }
+        .hs-bus-next {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+            font-size: 13px;
+            color: #555555;
+        }
+        .hs-bus-next b { color: #222222; }
+        .hs-bus-next span:last-child { color: #999999; }
+        .hs-bus-live {
+            margin-top: 12px;
+            padding: 9px 12px;
+            background: #F8FAFC;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #666666;
+            line-height: 1.6;
+        }
+        .hs-bus-live i { color: var(--bus); margin-right: 4px; }
+        .hs-bus-live b { color: #333333; }
+        .hs-bus-meta { margin-top: 8px; font-size: 11px; color: #A0A0A0; }
+        .hs-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #C8C8C8;
+            margin-right: 4px;
+            vertical-align: 1px;
+        }
+        .hs-dot.is-on { background: #22C55E; }
+        .hs-dot.is-off { background: #E5484D; }
+
+        @media (max-width: 900px) {
+            .hs-grid { grid-template-columns: 1fr; gap: 48px; }
+        }
+        @media (max-width: 560px) {
+            .hs-meal-grid { grid-template-columns: 1fr; }
+            .hs-meal-card { min-height: 0; }
+            .hs-weekbar { gap: 6px; }
+            .hs-days { gap: 4px; }
+            .hs-day { padding: 6px 2px; }
+            .hs-day.is-today span::after { content: ''; }
+            .hs-day.is-today b { color: #7BA4DB; }
+            .hs-day.is-active.is-today b { color: #FFFFFF; }
+            .hs-nav { width: 30px; height: 30px; }
+            .hs-count { font-size: 26px; }
+        }
+
+        /* ---------- [수정] 배치: 공지사항 → 급식 → (시간표 | 버스) → 학사일정 ---------- */
+        #schoolDaily {
+            display: flex;
+            flex-direction: column;
+            gap: 80px;
+            margin-bottom: 0;
+        }
+        .hs-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 36px;
+            align-items: start;
+        }
+
+        /* ---------- [수정] 시간표 크기 축소 ---------- */
+        #hsTimetable .hs-tt { min-width: 340px; font-size: 12px; }
+        #hsTimetable .hs-tt th,
+        #hsTimetable .hs-tt td { padding: 6px 3px; line-height: 1.3; }
+        #hsTimetable .hs-tt tbody th,
+        #hsTimetable .hs-tt thead th:first-child { width: 36px; }
+        #hsTimetable .hs-tt thead th small { font-size: 10px; }
+        #hsTimetable .hs-tt-tools { margin-bottom: 10px; }
+        #hsTimetable .hs-weeknav { font-size: 13px; }
+        #hsTimetable .hs-nav { width: 30px; height: 30px; }
+
+        /* ---------- 범례 ---------- */
+        .hs-tt-legend {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 11px;
+            color: #777777;
+            margin-bottom: 8px;
+        }
+        .hs-tt-legend span { display: inline-flex; align-items: center; gap: 5px; }
+        .hs-lg {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            border: 1px solid #E5E5E5;
+            background: #FFFFFF;
+        }
+        .hs-lg.is-move { background: #EAF7F2; border-color: #9FD8C4; }
+        .hs-lg.is-changed { background: #FFF4B8; border-color: #F2D45C; }
+        .hs-lg.is-today { background: #F1F6FD; border-color: #C9DBF2; }
+
+        /* ---------- 이동수업: '선택 A' 표시 ---------- */
+        .hs-tt td.is-move {
+            background: #EAF7F2;
+            color: #1F6F5C;
+            font-weight: 700;
+            box-shadow: inset 3px 0 0 #2BA58E;
+        }
+        .hs-tt td.is-move.is-today { background: #D9F0E7; }
+
+        /* ---------- 지난주와 달라진 시간: 노란색 ---------- */
+        .hs-tt td.is-changed,
+        .hs-tt td.is-changed.is-today,
+        .hs-tt td.is-move.is-changed {
+            background: #FFF4B8;
+            color: #7A5B00;
+            box-shadow: inset 0 0 0 1px #F2D45C;
+        }
+        .hs-tt td.is-move.is-changed { box-shadow: inset 3px 0 0 #2BA58E, inset 0 0 0 1px #F2D45C; }
+
+        @media (max-width: 900px) {
+            .hs-row { grid-template-columns: 1fr; gap: 80px; }
+        }
+    </style>
 </head>
 <body>
 
@@ -368,6 +1406,53 @@
                 <h2 class="section-title">최신 공지사항</h2>
                 <div id="recentNoticeContainer">
                     </div>
+            </div>
+
+            <!-- ===== [추가] 급식 · 시간표 · 버스 (공지사항과 학사일정 사이) ===== -->
+            <div class="hs-daily" id="schoolDaily" aria-label="오늘의 학교 생활">
+
+            <!-- 급식 안내: 로그인 없이 누구나 볼 수 있음 -->
+            <div class="hs-block" id="hsMeal">
+                <div class="hs-title">
+                    <h2><i class="fa-solid fa-utensils" aria-hidden="true"></i> 급식 안내</h2>
+                    <span class="hs-sub" id="hsMealRange">형석고등학교</span>
+                </div>
+                <div class="hs-weekbar">
+                    <button type="button" class="hs-nav" id="hsMealPrev" aria-label="지난주 급식 보기"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+                    <div class="hs-days" id="hsMealDays" aria-label="요일 선택"></div>
+                    <button type="button" class="hs-nav" id="hsMealNext" aria-label="다음 주 급식 보기"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+                </div>
+                <div class="hs-meal-grid" aria-live="polite">
+                    <article class="hs-meal-card hs-lunch" id="hsLunch"><p class="hs-loading">급식 정보를 불러오는 중...</p></article>
+                    <article class="hs-meal-card hs-dinner" id="hsDinner"><p class="hs-loading">급식 정보를 불러오는 중...</p></article>
+                </div>
+                <details class="hs-allergy-guide">
+                    <summary>메뉴 옆 숫자는 알레르기 유발 식품 번호예요 (펼쳐 보기)</summary>
+                    <p>1 난류 · 2 우유 · 3 메밀 · 4 땅콩 · 5 대두 · 6 밀 · 7 고등어 · 8 게 · 9 새우 · 10 돼지고기 · 11 복숭아 · 12 토마토 · 13 아황산류 · 14 호두 · 15 닭고기 · 16 쇠고기 · 17 오징어 · 18 조개류(굴·전복·홍합 포함) · 19 잣</p>
+                </details>
+            </div>
+
+            <!-- 시간표(왼쪽) · 버스(오른쪽) — 좁은 화면에서는 위아래 -->
+            <div class="hs-row">
+                <!-- 우리 반 시간표: 로그인한 사용자만 -->
+                <div class="hs-block" id="hsTimetable">
+                    <div class="hs-title">
+                        <h2><i class="fa-regular fa-calendar-days" aria-hidden="true"></i> 우리 반 시간표</h2>
+                        <span class="hs-sub" id="hsTtLabel"></span>
+                    </div>
+                    <div id="hsTtBody"><p class="hs-loading">시간표를 준비하는 중...</p></div>
+                </div>
+
+                <!-- 버스 출발 안내: 로그인 없이 누구나 볼 수 있음 -->
+                <div class="hs-block" id="hsBus">
+                    <div class="hs-title">
+                        <h2><i class="fa-solid fa-bus" aria-hidden="true"></i> 형석중·고 출발 버스</h2>
+                        <span class="hs-sub hs-clock" id="hsBusClock"></span>
+                    </div>
+                    <div class="hs-bus-list" id="hsBusList"></div>
+                    <p class="hs-note" id="hsBusStatus"></p>
+                </div>
+            </div>
             </div>
 
             <div class="minimal-list" id="calendar">
@@ -411,7 +1496,7 @@
             <a href="https://hshshs.riroschool.kr/index.php" target="_blank" class="footer-btn">형석고등학교 리로스쿨</a>
         </div>
 
-        <p class="version-info">Ver. open beta 2.1.1</p>
+        <p class="version-info">Ver. beta 2.1.0</p>
         <p class="copyright">© 형석고등학교 학생회. All rights reserved.</p>
     </footer>
 
@@ -650,6 +1735,859 @@
             }
             renderCalendar(currentYear, currentMonth);
         }
+    </script>
+    <!-- ===== [추가] 오늘의 학교 생활 스크립트 (급식 · 시간표 · 버스) — 기존 스크립트와 분리(전역 변수 없음) ===== -->
+    <script>
+    (function () {
+        'use strict';
+
+        /* =========================================================
+           1. 설정
+           ========================================================= */
+        // 나이스 교육정보 개방 포털 (급식 · 시간표)
+        const NEIS_KEY = '7dc3a8757f88403792750e024ec6bb09';
+        const NEIS_BASE = 'https://open.neis.go.kr/hub/';
+        const SCHOOL = { office: 'M10', code: '8000102', name: '형석고등학교' }; // 충청북도교육청 / 형석고등학교
+
+        // 공공데이터포털 국토교통부 TAGO (버스 노선정보 · 버스 위치정보)
+        const BUS_KEY = '53aaadcd0696da65a3d19c0ef3b2a9ba4b85bb75b7ec8aafda6223aeb4f5b2b0';
+        const TAGO_BASE = 'https://apis.data.go.kr/1613000/';
+        const CITY_CODE = '33010'; // 청주시
+        const STOP_IDS = ['CJB278000020', 'CJB278000021']; // 형석중.고등학교 정류장 (도착 / 석판 방향 출발)
+        const LIVE_INTERVAL = 60 * 1000; // 차량 위치 갱신 주기 (1분)
+
+        // 형석학원(형석중·고) 출발 시간표 — 평일 기준 (청주시 시간표, 2026년 5~6월 자료)
+        // 시간표가 바뀌면 아래 times 배열만 수정하면 됩니다.
+        const BUS_ROUTES = [
+            {
+                no: '105', routeId: 'CJB270002000', type: '간선', color: '#2F7DE1', arriveOrd: 67,
+                times: ['05:40', '06:20', '06:40', '06:55', '07:23', '07:52', '08:12', '08:32', '08:53', '09:08', '09:23', '09:43', '10:13', '10:38', '11:18', '11:49', '12:24', '12:44', '13:04', '13:28', '13:40', '13:55', '14:18', '14:48', '15:18', '15:53', '16:26', '16:43', '17:03', '17:21', '17:45', '18:13', '18:26', '18:47', '19:22', '19:45', '20:20', '20:43', '20:58', '21:20', '21:42', '22:01', '22:17', '22:35']
+            },
+            {
+                no: '109', routeId: 'CJB270026300', type: '급행', color: '#E5484D', arriveOrd: 28,
+                times: ['06:00', '06:30', '06:50', '07:05', '07:27', '07:47', '08:02', '08:27', '08:44', '08:59', '09:17', '09:37', '10:07', '10:32', '10:57', '11:17', '11:37', '12:07', '12:32', '12:54', '13:14', '13:32', '13:50', '14:08', '14:34', '14:59', '15:24', '15:54', '16:24', '16:49', '17:11', '17:30', '17:58', '18:16', '18:34', '19:01', '19:26', '19:51', '20:16', '20:31', '20:46', '21:08', '21:26', '21:48', '22:10']
+            }
+        ];
+
+        /* =========================================================
+           2. 공통 도우미
+           ========================================================= */
+        const $ = (id) => document.getElementById(id);
+        const DAY = ['일', '월', '화', '수', '목', '금', '토'];
+        const pad = (n) => String(n).padStart(2, '0');
+
+        function el(tag, cls, text) {
+            const e = document.createElement(tag);
+            if (cls) e.className = cls;
+            if (text !== undefined && text !== null) e.textContent = text;
+            return e;
+        }
+        function icon(cls) {
+            const i = document.createElement('i');
+            i.className = cls;
+            i.setAttribute('aria-hidden', 'true');
+            return i;
+        }
+        function ymd(d) {
+            return d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate());
+        }
+        function addDays(d, n) {
+            const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+            x.setDate(x.getDate() + n);
+            return x;
+        }
+        // 이번 학교 주간의 월요일 (토·일요일이면 다가오는 월요일)
+        function schoolMonday(d) {
+            const day = d.getDay();
+            const diff = day === 0 ? 1 : day === 6 ? 2 : 1 - day;
+            return addDays(d, diff);
+        }
+        function sameDay(a, b) {
+            return ymd(a) === ymd(b);
+        }
+        function rangeLabel(mon) {
+            const fri = addDays(mon, 4);
+            const left = `${mon.getMonth() + 1}월 ${mon.getDate()}일`;
+            const right = mon.getMonth() === fri.getMonth() ? `${fri.getDate()}일` : `${fri.getMonth() + 1}월 ${fri.getDate()}일`;
+            return `${left} ~ ${right}`;
+        }
+        function messageBox(target, cls, text, retry) {
+            const p = el('p', cls, text);
+            if (retry) {
+                p.append(document.createElement('br'));
+                const b = el('button', 'hs-retry', '다시 불러오기');
+                b.type = 'button';
+                b.onclick = retry;
+                p.append(b);
+            }
+            target.replaceChildren(p);
+        }
+        async function fetchText(url, timeoutMs = 10000) {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+            try {
+                const res = await fetch(url, { signal: ctrl.signal });
+                const text = await res.text();
+                return { ok: res.ok, status: res.status, text };
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+        function getSession() {
+            try {
+                return JSON.parse(localStorage.getItem('userSession') || 'null');
+            } catch (e) {
+                return null;
+            }
+        }
+
+        /* =========================================================
+           3. 나이스 API
+           ========================================================= */
+        async function neis(service, params) {
+            const q = new URLSearchParams({
+                KEY: NEIS_KEY, Type: 'json', pIndex: '1', pSize: '1000',
+                ATPT_OFCDC_SC_CODE: SCHOOL.office, SD_SCHUL_CODE: SCHOOL.code
+            });
+            Object.entries(params).forEach(([k, v]) => q.set(k, String(v)));
+            const res = await fetchText(NEIS_BASE + service + '?' + q.toString());
+            let data;
+            try {
+                data = JSON.parse(res.text);
+            } catch (e) {
+                throw new Error('NEIS 응답을 읽지 못했어요 (' + res.status + ')');
+            }
+            if (data[service]) {
+                const head = data[service][0] && data[service][0].head;
+                const result = head && head[1] && head[1].RESULT;
+                if (result && result.CODE !== 'INFO-000') throw new Error(result.MESSAGE || result.CODE);
+                return (data[service][1] && data[service][1].row) || [];
+            }
+            if (data.RESULT) {
+                if (data.RESULT.CODE === 'INFO-200') return []; // 해당 데이터 없음
+                throw new Error(data.RESULT.MESSAGE || data.RESULT.CODE);
+            }
+            return [];
+        }
+
+        /* =========================================================
+           4. 급식 (로그인 없이 공개)
+           ========================================================= */
+        const mealState = { monday: schoolMonday(new Date()), selected: null, weeks: new Map() };
+
+        function parseDishes(raw) {
+            return String(raw || '')
+                .split(/<br\s*\/?>/i)
+                .map((line) => line.trim())
+                .filter(Boolean)
+                .map((line) => {
+                    let allergy = '';
+                    const m = line.match(/\(\s*([\d.\s]+)\s*\)\s*$/);
+                    if (m) {
+                        allergy = m[1].split('.').map((x) => x.trim()).filter(Boolean).join(', ');
+                        line = line.slice(0, m.index);
+                    }
+                    const name = line.replace(/[*★☆#]+/g, '').replace(/\s{2,}/g, ' ').trim();
+                    return { name, allergy };
+                })
+                .filter((d) => d.name);
+        }
+
+        function upcomingMealCode(date) {
+            const now = new Date();
+            if (!sameDay(date, now)) return '';
+            const m = now.getHours() * 60 + now.getMinutes();
+            if (m < 13 * 60 + 30) return '2';
+            if (m < 19 * 60 + 30) return '3';
+            return '';
+        }
+
+        function renderMealCard(box, code, row, date) {
+            const isLunch = code === '2';
+            const head = el('div', 'hs-meal-head');
+            const tag = el('span', 'hs-meal-tag');
+            tag.append(icon(isLunch ? 'fa-solid fa-sun' : 'fa-solid fa-moon'), document.createTextNode(isLunch ? '점심' : '저녁'));
+            tag.append(el('small', '', isLunch ? '중식' : '석식'));
+            head.append(tag);
+            if (upcomingMealCode(date) === code) head.append(el('span', 'hs-now', '다음 식사'));
+            if (row && row.CAL_INFO) head.append(el('span', 'hs-kcal', row.CAL_INFO.replace(/\s*Kcal/i, ' kcal')));
+
+            box.replaceChildren(head);
+            const dishes = row ? parseDishes(row.DDISH_NM) : [];
+            if (!dishes.length) {
+                box.append(el('p', 'hs-empty', isLunch ? '점심 급식 정보가 없어요.' : '저녁 급식 정보가 없어요.'));
+                return;
+            }
+            const ul = el('ul', 'hs-menu');
+            dishes.forEach((d) => {
+                const li = el('li');
+                li.append(el('span', '', d.name));
+                if (d.allergy) {
+                    const a = el('span', 'hs-allergy', d.allergy);
+                    a.title = '알레르기 유발 식품 번호';
+                    li.append(a);
+                }
+                ul.append(li);
+            });
+            box.append(ul);
+        }
+
+        function renderMealDays() {
+            const days = $('hsMealDays');
+            days.replaceChildren();
+            const today = new Date();
+            for (let i = 0; i < 5; i++) {
+                const d = addDays(mealState.monday, i);
+                const b = el('button', 'hs-day');
+                b.type = 'button';
+                if (sameDay(d, today)) b.classList.add('is-today');
+                if (mealState.selected && sameDay(d, mealState.selected)) {
+                    b.classList.add('is-active');
+                    b.setAttribute('aria-pressed', 'true');
+                } else {
+                    b.setAttribute('aria-pressed', 'false');
+                }
+                b.append(el('span', '', DAY[d.getDay()]), el('b', '', `${d.getMonth() + 1}/${d.getDate()}`));
+                b.onclick = () => {
+                    mealState.selected = d;
+                    renderMealDays();
+                    renderMealDay();
+                };
+                days.append(b);
+            }
+            $('hsMealRange').textContent = `${SCHOOL.name} · ${rangeLabel(mealState.monday)}`;
+        }
+
+        function renderMealDay() {
+            const key = ymd(mealState.monday);
+            const week = mealState.weeks.get(key);
+            if (!week || week instanceof Promise) return;
+            const day = week[ymd(mealState.selected)] || {};
+            renderMealCard($('hsLunch'), '2', day['2'], mealState.selected);
+            renderMealCard($('hsDinner'), '3', day['3'], mealState.selected);
+        }
+
+        async function loadMealWeek() {
+            const key = ymd(mealState.monday);
+            const today = new Date();
+            const inWeek = today >= mealState.monday && today < addDays(mealState.monday, 5);
+            if (!mealState.selected || !(mealState.selected >= mealState.monday && mealState.selected < addDays(mealState.monday, 5))) {
+                mealState.selected = inWeek ? new Date(today.getFullYear(), today.getMonth(), today.getDate()) : mealState.monday;
+            }
+            renderMealDays();
+
+            if (mealState.weeks.has(key) && !(mealState.weeks.get(key) instanceof Promise)) {
+                renderMealDay();
+                return;
+            }
+            messageBox($('hsLunch'), 'hs-loading', '급식 정보를 불러오는 중...');
+            messageBox($('hsDinner'), 'hs-loading', '급식 정보를 불러오는 중...');
+            try {
+                const rows = await neis('mealServiceDietInfo', {
+                    MLSV_FROM_YMD: key,
+                    MLSV_TO_YMD: ymd(addDays(mealState.monday, 4))
+                });
+                const week = {};
+                rows.forEach((r) => {
+                    (week[r.MLSV_YMD] = week[r.MLSV_YMD] || {})[String(r.MMEAL_SC_CODE)] = r;
+                });
+                mealState.weeks.set(key, week);
+                if (key === ymd(mealState.monday)) renderMealDay();
+            } catch (err) {
+                console.warn('[급식] 불러오기 실패:', err);
+                messageBox($('hsLunch'), 'hs-error', '급식 정보를 불러오지 못했어요.', loadMealWeek);
+                $('hsDinner').replaceChildren();
+            }
+        }
+
+        function initMeal() {
+            $('hsMealPrev').onclick = () => {
+                mealState.monday = addDays(mealState.monday, -7);
+                mealState.selected = null;
+                loadMealWeek();
+            };
+            $('hsMealNext').onclick = () => {
+                mealState.monday = addDays(mealState.monday, 7);
+                mealState.selected = null;
+                loadMealWeek();
+            };
+            loadMealWeek();
+        }
+
+        /* =========================================================
+           5. 우리 반 시간표 (로그인한 사용자만)
+           ========================================================= */
+        const ttState = { grade: 1, cls: 1, monday: schoolMonday(new Date()), own: false, classes: null };
+        const TT_PICK_KEY = 'hs_timetable_pick_v1';
+        // 이동수업 묶음 글자 구하기: 강의실명이 '과목명+묶음'(예: 법과 사회C) 형태
+        function moveGroupOf(r) {
+            const room = String(r.CLRM_NM || '').trim();
+            const subj = String(r.ITRT_CNTNT || '').trim();
+            let g = '';
+            if (subj && room.startsWith(subj)) g = room.slice(subj.length).trim();
+            if (!g) {
+                const m = room.match(/([A-Za-z])$/);
+                g = m ? m[1] : '';
+            }
+            return g.toUpperCase();
+        }
+        function cleanSubject(v) {
+            return String(v || '').replace(/^-+/, '').trim();
+        }
+
+        function classFromSession(s) {
+            const raw = String((s && (s.studentNumber || s.studentId)) || '').replace(/\D/g, '');
+            if (raw.length >= 5) {
+                const g = Number(raw[0]);
+                const c = Number(raw.slice(1, 3));
+                if (g >= 1 && g <= 3 && c >= 1 && c <= 20) return { grade: g, cls: c };
+            }
+            return null;
+        }
+        function academicYear(d) {
+            return d.getMonth() + 1 >= 3 ? d.getFullYear() : d.getFullYear() - 1;
+        }
+
+        async function loadClassList() {
+            if (ttState.classes) return ttState.classes;
+            const fallback = { 1: [1, 2, 3, 4, 5], 2: [1, 2, 3, 4, 5], 3: [1, 2, 3, 4, 5] };
+            try {
+                const rows = await neis('classInfo', { AY: academicYear(new Date()) });
+                const map = {};
+                rows.forEach((r) => {
+                    const g = Number(r.GRADE);
+                    const c = Number(r.CLASS_NM);
+                    if (g && c) (map[g] = map[g] || []).push(c);
+                });
+                Object.values(map).forEach((list) => list.sort((a, b) => a - b));
+                ttState.classes = Object.keys(map).length ? map : fallback;
+            } catch (e) {
+                ttState.classes = fallback;
+            }
+            return ttState.classes;
+        }
+
+        function renderTimetableLocked() {
+            $('hsTtLabel').textContent = '';
+            const box = el('div', 'hs-lock');
+            box.append(icon('fa-solid fa-lock'));
+            box.append(el('strong', '', '로그인하면 우리 반 시간표가 보여요'));
+            box.append(el('p', '', '회원가입할 때 입력한 학년·반 정보로 이번 주 시간표를 자동으로 보여 드려요.'));
+            const a = el('a', 'hs-btn');
+            a.href = 'login.html';
+            a.append(icon('fa-solid fa-right-to-bracket'), document.createTextNode('로그인하기'));
+            box.append(a);
+            $('hsTtBody').replaceChildren(box);
+        }
+
+        function buildTools(classes) {
+            const tools = el('div', 'hs-tt-tools');
+
+            const nav = el('div', 'hs-weeknav');
+            const prev = el('button', 'hs-nav');
+            prev.type = 'button';
+            prev.setAttribute('aria-label', '지난주 시간표');
+            prev.append(icon('fa-solid fa-chevron-left'));
+            prev.onclick = () => {
+                ttState.monday = addDays(ttState.monday, -7);
+                loadTimetable();
+            };
+            const next = el('button', 'hs-nav');
+            next.type = 'button';
+            next.setAttribute('aria-label', '다음 주 시간표');
+            next.append(icon('fa-solid fa-chevron-right'));
+            next.onclick = () => {
+                ttState.monday = addDays(ttState.monday, 7);
+                loadTimetable();
+            };
+            nav.append(prev, el('span', '', rangeLabel(ttState.monday)), next);
+
+            const pick = el('div', 'hs-class-pick');
+            const gSel = el('select');
+            gSel.setAttribute('aria-label', '학년 선택');
+            [1, 2, 3].forEach((g) => {
+                const o = el('option', '', g + '학년');
+                o.value = g;
+                if (g === ttState.grade) o.selected = true;
+                gSel.append(o);
+            });
+            const cSel = el('select');
+            cSel.setAttribute('aria-label', '반 선택');
+            const list = classes[ttState.grade] || [1, 2, 3, 4, 5];
+            if (!list.includes(ttState.cls)) list.push(ttState.cls);
+            list.sort((a, b) => a - b).forEach((c) => {
+                const o = el('option', '', c + '반');
+                o.value = c;
+                if (c === ttState.cls) o.selected = true;
+                cSel.append(o);
+            });
+            const onPick = () => {
+                ttState.grade = Number(gSel.value);
+                const avail = classes[ttState.grade] || [1, 2, 3, 4, 5];
+                ttState.cls = avail.includes(Number(cSel.value)) ? Number(cSel.value) : avail[0];
+                try {
+                    localStorage.setItem(TT_PICK_KEY, JSON.stringify({ grade: ttState.grade, cls: ttState.cls }));
+                } catch (e) {}
+                loadTimetable();
+            };
+            gSel.onchange = onPick;
+            cSel.onchange = onPick;
+            pick.append(gSel, cSel);
+
+            tools.append(nav, pick);
+            return tools;
+        }
+
+        // 학년 전체 행 → 우리 반 수업 + 이동수업(반 번호 없는 행) 분리
+        function splitRows(rows) {
+            const grid = {};  // 우리 반: grid[날짜][교시] = Set(과목)
+            const moves = {}; // 이동수업: moves[날짜][교시] = Set(묶음 글자)
+            let maxPerio = 0;
+            rows.forEach((r) => {
+                const p = Number(r.PERIO);
+                const subject = cleanSubject(r.ITRT_CNTNT);
+                if (!p || !subject) return;
+                const cls = r.CLASS_NM === null || r.CLASS_NM === undefined || r.CLASS_NM === '' ? null : Number(r.CLASS_NM);
+                if (cls === ttState.cls) {
+                    maxPerio = Math.max(maxPerio, p);
+                    const day = (grid[r.ALL_TI_YMD] = grid[r.ALL_TI_YMD] || {});
+                    (day[p] = day[p] || new Set()).add(subject); // 같은 교시 중복 행 합치기
+                } else if (cls === null) {
+                    maxPerio = Math.max(maxPerio, p);
+                    const day = (moves[r.ALL_TI_YMD] = moves[r.ALL_TI_YMD] || {});
+                    (day[p] = day[p] || new Set()).add(moveGroupOf(r) || '');
+                }
+            });
+            return { grid, moves, maxPerio };
+        }
+
+        // 한 칸의 화면 표시 내용 (우리 반 수업 > 이동수업 > 빈칸)
+        function cellInfo(data, key, p) {
+            const set = data.grid[key] && data.grid[key][p];
+            if (set && set.size) {
+                const text = [...set].sort((x, y) => x.localeCompare(y, 'ko')).join(' / ');
+                return { type: 'class', text, sig: 'C:' + text };
+            }
+            const mv = data.moves[key] && data.moves[key][p];
+            if (mv && mv.size) {
+                const letters = [...mv].filter(Boolean).sort();
+                const text = letters.length ? '선택 ' + letters.join('·') : '선택';
+                return { type: 'move', text, sig: 'M:' + text };
+            }
+            return { type: 'blank', text: '-', sig: '' };
+        }
+        function hasDayData(data, key) {
+            return Boolean((data.grid[key] && Object.keys(data.grid[key]).length) || (data.moves[key] && Object.keys(data.moves[key]).length));
+        }
+
+        // 비교 기준 날짜: 지난주 같은 요일 → (없으면) 2주 전 같은 요일
+        function baseKeyFor(data, d) {
+            for (const back of [7, 14]) {
+                const k = ymd(addDays(d, -back));
+                if (hasDayData(data, k)) return { key: k, back };
+            }
+            return null;
+        }
+
+        function buildTable(data) {
+            const today = new Date();
+            const dates = [];
+            for (let i = 0; i < 5; i++) dates.push(addDays(ttState.monday, i));
+
+            // 이번 주 기준으로 표시할 최대 교시 (최소 7교시)
+            let maxPerio = 7;
+            dates.forEach((d) => {
+                const k = ymd(d);
+                [data.grid[k], data.moves[k]].forEach((m) => m && Object.keys(m).forEach((p) => (maxPerio = Math.max(maxPerio, Number(p)))));
+            });
+
+            let changedCount = 0;
+            let hasMove = false;
+            const table = el('table', 'hs-tt');
+            const thead = el('thead');
+            const hr = el('tr');
+            hr.append(el('th', '', '교시'));
+            dates.forEach((d) => {
+                const th = el('th', sameDay(d, today) ? 'is-today' : '', DAY[d.getDay()]);
+                th.append(el('small', '', `${d.getMonth() + 1}/${d.getDate()}`));
+                hr.append(th);
+            });
+            thead.append(hr);
+
+            const tbody = el('tbody');
+            for (let p = 1; p <= maxPerio; p++) {
+                const tr = el('tr');
+                tr.append(el('th', '', p));
+                dates.forEach((d) => {
+                    const key = ymd(d);
+                    const cur = cellInfo(data, key, p);
+                    const td = el('td', '', cur.text);
+                    if (cur.type === 'move') {
+                        td.classList.add('is-move');
+                        hasMove = true;
+                        td.setAttribute('aria-label', `${p}교시 ${cur.text} (이동수업)`);
+                    } else if (cur.type === 'blank') {
+                        td.classList.add('is-blank');
+                    }
+                    if (sameDay(d, today)) td.classList.add('is-today');
+
+                    // 지난주 같은 요일과 비교해서 달라졌으면 노란색
+                    const base = hasDayData(data, key) ? baseKeyFor(data, d) : null;
+                    if (base) {
+                        const prev = cellInfo(data, base.key, p);
+                        if (prev.sig !== cur.sig) {
+                            td.classList.add('is-changed');
+                            td.title = `${base.back === 7 ? '지난주' : '2주 전'} ${DAY[d.getDay()]}요일 ${p}교시: ${prev.text}`;
+                            changedCount++;
+                        }
+                    }
+                    tr.append(td);
+                });
+                tbody.append(tr);
+            }
+            table.append(thead, tbody);
+            const wrap = el('div', 'hs-tt-wrap');
+            wrap.append(table);
+            return { node: wrap, changedCount, hasMove };
+        }
+
+        function buildLegend(hasMove, changedCount) {
+            const lg = el('div', 'hs-tt-legend');
+            const item = (cls, text) => {
+                const sp = el('span');
+                sp.append(el('i', 'hs-lg' + (cls ? ' ' + cls : '')), document.createTextNode(text));
+                return sp;
+            };
+            lg.append(item('', '우리 반 수업'));
+            if (hasMove) lg.append(item('is-move', '선택(이동수업)'));
+            if (changedCount) lg.append(item('is-changed', `지난주와 달라짐 ${changedCount}칸`));
+            lg.append(item('is-today', '오늘'));
+            return lg;
+        }
+
+        let ttRequest = 0;
+        async function loadTimetable() {
+            const reqId = ++ttRequest;
+            const classes = await loadClassList();
+            if (reqId !== ttRequest) return;
+
+            $('hsTtLabel').textContent = `${ttState.grade}학년 ${ttState.cls}반${ttState.own ? ' · 우리 반' : ''}`;
+            const body = $('hsTtBody');
+            const tools = buildTools(classes);
+            const content = el('div');
+            body.replaceChildren(tools, content);
+            messageBox(content, 'hs-loading', '시간표를 불러오는 중...');
+
+            try {
+                // 학년 전체 시간표(이번 주 + 비교용 지난 2주)를 받아 우리 반 수업과 이동수업을 함께 사용
+                const rows = await neis('hisTimetable', {
+                    GRADE: ttState.grade,
+                    TI_FROM_YMD: ymd(addDays(ttState.monday, -14)),
+                    TI_TO_YMD: ymd(addDays(ttState.monday, 4))
+                });
+                if (reqId !== ttRequest) return;
+                const data = splitRows(rows);
+                let thisWeek = false;
+                for (let i = 0; i < 5; i++) if (hasDayData(data, ymd(addDays(ttState.monday, i)))) thisWeek = true;
+                if (!thisWeek) {
+                    messageBox(content, 'hs-empty', '이 주의 시간표가 아직 등록되지 않았어요. (방학·시험 기간이거나 나이스에 미등록)');
+                    return;
+                }
+                const table = buildTable(data);
+                content.replaceChildren(buildLegend(table.hasMove, table.changedCount), table.node);
+                const notes = ['나이스에 등록된 시간표 기준이에요.'];
+                if (table.hasMove) notes.push('초록색 \'선택 A\' 칸은 선택과목 묶음별로 교실을 옮기는 이동수업이에요.');
+                notes.push(table.changedCount
+                    ? '노란색 칸은 지난주 같은 요일과 시간표가 달라진 곳이에요. 마우스를 올리면 지난주 수업을 볼 수 있어요.'
+                    : '노란색 칸은 지난주 같은 요일과 시간표가 달라진 곳에 표시돼요.');
+                content.append(el('p', 'hs-note', notes.join(' ')));
+            } catch (err) {
+                if (reqId !== ttRequest) return;
+                console.warn('[시간표] 불러오기 실패:', err);
+                messageBox(content, 'hs-error', '시간표를 불러오지 못했어요.', loadTimetable);
+            }
+        }
+
+        function initTimetable() {
+            const session = getSession();
+            if (!session || !session.id) {
+                renderTimetableLocked();
+                return;
+            }
+            const mine = classFromSession(session);
+            let saved = null;
+            try {
+                saved = JSON.parse(localStorage.getItem(TT_PICK_KEY) || 'null');
+            } catch (e) {}
+            if (mine) {
+                ttState.grade = mine.grade;
+                ttState.cls = mine.cls;
+                ttState.own = true;
+            } else if (saved && saved.grade && saved.cls) {
+                ttState.grade = Number(saved.grade);
+                ttState.cls = Number(saved.cls);
+            }
+            loadTimetable();
+        }
+
+        /* =========================================================
+           6. 버스 출발 안내 (로그인 없이 공개)
+           ========================================================= */
+        const busCards = {};
+        const toMin = (t) => {
+            const [h, m] = t.split(':').map(Number);
+            return h * 60 + m;
+        };
+        const hhmm = (d) => pad(d.getHours()) + ':' + pad(d.getMinutes());
+        function atTime(base, t) {
+            const d = new Date(base.getFullYear(), base.getMonth(), base.getDate());
+            d.setMinutes(toMin(t));
+            return d;
+        }
+
+        // 다음 출발 정보 계산
+        function departures(route, now) {
+            const deps = route.times.map((t) => atTime(now, t));
+            const idx = deps.findIndex((d) => d > now);
+            if (idx >= 0) {
+                return {
+                    ended: false,
+                    next: deps[idx],
+                    later: deps.slice(idx + 1, idx + 3),
+                    prev: idx > 0 ? deps[idx - 1] : atTime(addDays(now, -1), route.times[route.times.length - 1])
+                };
+            }
+            const tomorrow = addDays(now, 1);
+            const t2 = route.times.map((t) => atTime(tomorrow, t));
+            return { ended: true, next: t2[0], later: t2.slice(1, 3), prev: deps[deps.length - 1] };
+        }
+
+        function setCount(target, sec) {
+            const h = Math.floor(sec / 3600);
+            const m = Math.floor((sec % 3600) / 60);
+            const s = sec % 60;
+            const parts = [];
+            if (h > 0) parts.push([h, '시간']);
+            if (h > 0 || m > 0) parts.push([h > 0 ? pad(m) : m, '분']);
+            parts.push([pad(s), '초']);
+            target.replaceChildren();
+            parts.forEach(([v, u]) => {
+                target.append(document.createTextNode(String(v)));
+                target.append(el('small', '', u));
+            });
+        }
+
+        function buildBusCard(route) {
+            const card = el('article', 'hs-bus-card');
+            card.style.setProperty('--bus', route.color);
+
+            const top = el('div', 'hs-bus-top');
+            top.append(el('span', 'hs-bus-no', route.no));
+            const info = el('div', 'hs-bus-info');
+            const title = el('strong', '', '형석중·고 → 석판종점');
+            const desc = el('span', '', `${route.type}버스 · 형석 첫차 ${route.times[0]} / 막차 ${route.times[route.times.length - 1]}`);
+            info.append(title, desc);
+            top.append(info);
+
+            const countRow = el('div', 'hs-bus-count');
+            const label = el('span', 'hs-count-label', '다음 출발까지');
+            const count = el('span', 'hs-count');
+            count.setAttribute('aria-live', 'off');
+            countRow.append(label, count);
+
+            const progress = el('div', 'hs-progress');
+            const bar = el('i');
+            progress.append(bar);
+
+            const nextRow = el('div', 'hs-bus-next');
+            const nextTime = el('span');
+            const laterTime = el('span');
+            nextRow.append(nextTime, laterTime);
+
+            const live = el('div', 'hs-bus-live');
+            live.append(el('span', 'hs-dot'), document.createTextNode('실시간 차량 위치를 확인하는 중...'));
+
+            card.append(top, countRow, progress, nextRow, live);
+            busCards[route.no] = { card, desc, label, count, bar, nextTime, laterTime, live };
+            return card;
+        }
+
+        function tickBus() {
+            const now = new Date();
+            $('hsBusClock').textContent = `${now.getMonth() + 1}/${now.getDate()}(${DAY[now.getDay()]}) ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+            BUS_ROUTES.forEach((route) => {
+                const c = busCards[route.no];
+                if (!c) return;
+                const info = departures(route, now);
+                const sec = Math.max(0, Math.ceil((info.next - now) / 1000));
+                setCount(c.count, sec);
+                c.label.textContent = info.ended ? '오늘 운행 종료 · 내일 첫차까지' : '다음 출발까지';
+                c.card.classList.toggle('is-ended', info.ended);
+                c.card.classList.toggle('is-soon', !info.ended && sec <= 300);
+
+                const total = info.next - info.prev;
+                const ratio = total > 0 ? Math.min(1, Math.max(0, (now - info.prev) / total)) : 0;
+                c.bar.style.width = (ratio * 100).toFixed(1) + '%';
+
+                c.nextTime.replaceChildren();
+                c.nextTime.append(el('b', '', hhmm(info.next)), document.createTextNode(info.ended ? ' 내일 첫차' : ' 출발'));
+                c.laterTime.textContent = info.later.length ? '그다음 ' + info.later.map(hhmm).join(' · ') : '그다음 버스 없음';
+            });
+        }
+
+        // ---------- TAGO API ----------
+        async function tago(path, params) {
+            const q = new URLSearchParams({ serviceKey: BUS_KEY, _type: 'json', cityCode: CITY_CODE });
+            Object.entries(params).forEach(([k, v]) => q.set(k, String(v)));
+            const res = await fetchText(TAGO_BASE + path + '?' + q.toString());
+            let data;
+            try {
+                data = JSON.parse(res.text);
+            } catch (e) {
+                const m = res.text.match(/<returnAuthMsg>([^<]+)<\/returnAuthMsg>/) || res.text.match(/<errMsg>([^<]+)<\/errMsg>/);
+                throw new Error(m ? m[1] : 'TAGO 응답 오류 (' + res.status + ')');
+            }
+            const header = data && data.response && data.response.header;
+            if (!header || header.resultCode !== '00') throw new Error((header && header.resultMsg) || 'TAGO 응답 오류');
+            const items = data.response.body && data.response.body.items;
+            const item = items && items.item;
+            if (!item) return [];
+            return Array.isArray(item) ? item : [item];
+        }
+
+        const ROUTE_CACHE_KEY = 'hs_bus_route_info_v1';
+        async function loadRouteInfo() {
+            let cache = {};
+            try {
+                cache = JSON.parse(localStorage.getItem(ROUTE_CACHE_KEY) || '{}') || {};
+            } catch (e) {}
+            const fresh = cache.t && Date.now() - cache.t < 24 * 60 * 60 * 1000;
+            await Promise.all(BUS_ROUTES.map(async (route) => {
+                let info = fresh && cache[route.routeId];
+                if (!info) {
+                    try {
+                        info = (await tago('BusRouteInfoInqireService/getRouteInfoIem', { routeId: route.routeId }))[0];
+                        if (info) cache[route.routeId] = info;
+                    } catch (e) {
+                        console.warn('[버스] 노선정보 불러오기 실패:', route.no, e.message);
+                    }
+                }
+                const c = busCards[route.no];
+                if (info && c) {
+                    const weekday = Number(info.intervaltime) || 0;
+                    const sat = Number(info.intervalsattime) || 0;
+                    const typeName = info.routetp || route.type + '버스';
+                    const interval = weekday ? ` · 배차 약 ${weekday}분${sat && sat !== weekday ? ` (토 ${sat}분)` : ''}` : '';
+                    c.desc.textContent = `${typeName}${interval} · 형석 첫차 ${route.times[0]} / 막차 ${route.times[route.times.length - 1]}`;
+                }
+            }));
+            cache.t = cache.t && fresh ? cache.t : Date.now();
+            try {
+                localStorage.setItem(ROUTE_CACHE_KEY, JSON.stringify(cache));
+            } catch (e) {}
+        }
+
+        function setLive(route, state, nodes) {
+            const c = busCards[route.no];
+            if (!c) return;
+            const dot = el('span', 'hs-dot' + (state === 'on' ? ' is-on' : state === 'off' ? ' is-off' : ''));
+            c.live.replaceChildren(dot, ...nodes);
+        }
+        const txt = (s) => document.createTextNode(s);
+        const bold = (s) => el('b', '', s);
+
+        function describeLive(route, items) {
+            const updated = hhmm(new Date());
+            if (!items.length) {
+                setLive(route, '', [txt('지금 운행 중인 차량 정보가 없어요. '), el('span', '', `(${updated} 확인)`)]);
+                return;
+            }
+            const atSchool = items.filter((b) => STOP_IDS.includes(b.nodeid));
+            const incoming = items
+                .filter((b) => Number(b.nodeord) < route.arriveOrd && !STOP_IDS.includes(b.nodeid))
+                .sort((a, b) => Number(b.nodeord) - Number(a.nodeord));
+
+            const nodes = [];
+            if (atSchool.length) {
+                nodes.push(bold('형석중·고 정류장에 차량이 있어요'), txt(' (출발 대기 중일 수 있어요)'));
+            } else if (incoming.length) {
+                const n = route.arriveOrd - Number(incoming[0].nodeord);
+                nodes.push(txt('형석 방향 가장 가까운 차량: '), bold(`${n}정류장 전`));
+                if (incoming[0].nodenm) nodes.push(txt(` (${incoming[0].nodenm})`));
+            } else {
+                nodes.push(txt('형석 방향으로 오는 차량이 아직 없어요.'));
+            }
+            nodes.push(document.createElement('br'), txt(`운행 중 ${items.length}대 · ${updated} 갱신`));
+            setLive(route, 'on', nodes);
+        }
+
+        let liveLast = 0;
+        let liveBusy = false;
+        async function refreshLive() {
+            if (liveBusy) return;
+            const now = new Date();
+            const m = now.getHours() * 60 + now.getMinutes();
+            const lastDep = Math.max(...BUS_ROUTES.map((r) => toMin(r.times[r.times.length - 1])));
+            if (m < 5 * 60 || m > lastDep + 60) {
+                BUS_ROUTES.forEach((route) => setLive(route, '', [txt(`운행 시간이 아니에요. ${m < 5 * 60 ? '오늘' : '내일'} 첫차는 ${route.times[0]} 출발이에요.`)]));
+                liveLast = Date.now();
+                return;
+            }
+            liveBusy = true;
+            try {
+                await Promise.all(BUS_ROUTES.map(async (route) => {
+                    try {
+                        const items = await tago('BusLcInfoInqireService/getRouteAcctoBusLcList', { routeId: route.routeId, numOfRows: 100, pageNo: 1 });
+                        describeLive(route, items);
+                    } catch (e) {
+                        console.warn('[버스] 위치정보 불러오기 실패:', route.no, e.message);
+                        setLive(route, 'off', [txt('실시간 위치를 불러오지 못했어요. 시간표 기준으로 안내 중이에요.')]);
+                    }
+                }));
+            } finally {
+                liveLast = Date.now();
+                liveBusy = false;
+            }
+        }
+
+        function initBus() {
+            const list = $('hsBusList');
+            list.replaceChildren(...BUS_ROUTES.map(buildBusCard));
+            const day = new Date().getDay();
+            $('hsBusStatus').textContent =
+                (day === 0 || day === 6
+                    ? '오늘은 주말이에요. 남은 시간은 평일 시간표 기준이라 실제 출발 시각과 다를 수 있어요. '
+                    : '남은 시간은 형석학원 출발 시간표(평일) 기준이며, 교통 상황에 따라 실제와 다를 수 있어요. ') +
+                '차량 위치는 국토교통부 실시간 정보로 1분마다 갱신돼요.';
+
+            tickBus();
+            setInterval(tickBus, 1000);
+            loadRouteInfo();
+            refreshLive();
+            setInterval(() => {
+                if (document.visibilityState === 'visible') refreshLive();
+            }, LIVE_INTERVAL);
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible' && Date.now() - liveLast > LIVE_INTERVAL) refreshLive();
+            });
+        }
+
+        /* =========================================================
+           7. 시작
+           ========================================================= */
+        function start() {
+            if (!$('schoolDaily')) return;
+            initMeal();
+            initTimetable();
+            initBus();
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', start);
+        } else {
+            start();
+        }
+    })();
     </script>
 </body>
 </html>
