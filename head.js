@@ -414,6 +414,7 @@ const headerHTML = `
                 <div class="dropdown-content">
                     <a href="stuinfo.html">부서 정보</a>
                     <a href="hsaca.html">학술 아카이브</a>
+                    <a href="freebook.html">프리북스</a>
                 </div>
             </div>
             <div class="nav-item">
@@ -507,6 +508,7 @@ const headerHTML = `
             <div class="mobile-dropdown-content">
                 <a href="stuinfo.html" onclick="closeSidebar()">부서 정보</a>
                 <a href="hsaca.html" onclick="closeSidebar()">학술 아카이브</a>
+                <a href="freebook.html" onclick="closeSidebar()">프리북스</a>
             </div>
         </div>
         <div class="mobile-nav-item">
